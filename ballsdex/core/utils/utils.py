@@ -9,10 +9,10 @@ from settings.models import settings
 from .checks import get_user_for_check
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
-async def is_staff(interaction: discord.Interaction["BallsDexBot"], *perms: str) -> bool:
+async def is_staff(interaction: discord.Interaction["BloxdDexBot"], *perms: str) -> bool:
     """
     Checks if an interacting user checks one of the following conditions:
 
@@ -21,7 +21,7 @@ async def is_staff(interaction: discord.Interaction["BallsDexBot"], *perms: str)
 
     Parameters
     ----------
-    interaction: Interaction[BallsDexBot]
+    interaction: Interaction[BloxdDexBot]
         The interaction of the user to check.
     perms: *str
         Django permissions to verify. If empty, only staff status will be checked.
@@ -41,8 +41,8 @@ async def is_staff(interaction: discord.Interaction["BallsDexBot"], *perms: str)
 
 
 async def inventory_privacy(
-    bot: "BallsDexBot",
-    interaction: discord.Interaction["BallsDexBot"],
+    bot: "BloxdDexBot",
+    interaction: discord.Interaction["BloxdDexBot"],
     player: Player,
     user_obj: Union[discord.User, discord.Member],
 ):
@@ -52,12 +52,12 @@ async def inventory_privacy(
 
     Parameters
     ----------
-    bot: BallsDexBot
+    bot: BloxdDexBot
         Bot object
-    interaction: Interaction[BallsDexBot]
+    interaction: Interaction[BloxdDexBot]
         Interaction of the command.
     player: Player
-        Ballsdex Player object of the user whose inventory is being inspected.
+        BloxdDex Player object of the user whose inventory is being inspected.
     user_obj: discord.User | discord.Member
         Discord user object of the user whose inventory is being inspected.
 

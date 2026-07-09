@@ -36,9 +36,9 @@ from .trade import TradeInstance, TradingUser
 if TYPE_CHECKING:
     import discord.types.interactions
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class Trade(commands.GroupCog):
     history_view_cls = HistoryView
     trade_list_fmt_cls = TradeListFormatter
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
         self.lockdown: str | None = None
         self.trades: dict[int, dict[int, TradeInstance]] = defaultdict(dict)
@@ -171,18 +171,18 @@ class Trade(commands.GroupCog):
     async def add(
         self,
         interaction: Interaction,
-        countryball: BallInstanceTransform,
+        block: BallInstanceTransform,
         special: SpecialEnabledTransform | None = None,
     ):
         """
-        Add a countryball to your trade proposal. You must have a trade open.
+        Add an item to your trade proposal. You must have a trade open.
 
         Parameters
         ----------
-        countryball: BallInstance
-            The countryball you are adding to your trade.
+        block: BallInstance
+            The block you are adding to your trade.
         special: Special | None
-            The special you want to filter the countryball by.
+            The special you want to filter the block by.
         """
         result = await self.get_trade(interaction)
         if result is None:
@@ -190,31 +190,31 @@ class Trade(commands.GroupCog):
             return
         trade, trader = result
         try:
-            await trader.add_to_proposal(BallInstance.objects.filter(id=countryball.pk))
+            await trader.add_to_proposal(BallInstance.objects.filter(id=block.pk))
         except TradeError as e:
             await interaction.response.send_message(e.error_message, ephemeral=True)
         else:
             await trade.edit_message(None)
             await interaction.response.send_message(
-                f"{countryball.description(is_trade=True, include_emoji=True, bot=self.bot)} added.", ephemeral=True
+                f"{block.description(is_trade=True, include_emoji=True, bot=self.bot)} added.", ephemeral=True
             )
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
     async def remove(
         self,
         interaction: Interaction,
-        countryball: BallInstanceTransform,
+        block: BallInstanceTransform,
         special: SpecialEnabledTransform | None = None,
     ):
         """
-        Remove a countryball from your trade proposal. You must have a trade open.
+        Remove an item from your trade proposal. You must have a trade open.
 
         Parameters
         ----------
-        countryball: BallInstance
-            The countryball you are removing from your trade.
+        block: BallInstance
+            The block you are removing from your trade.
         special: Special | None
-            The special you want to filter the countryball by.
+            The special you want to filter the block by.
         """
         result = await self.get_trade(interaction)
         if result is None:
@@ -222,13 +222,13 @@ class Trade(commands.GroupCog):
             return
         trade, trader = result
         try:
-            await trader.remove_from_proposal(BallInstance.objects.filter(id=countryball.pk))
+            await trader.remove_from_proposal(BallInstance.objects.filter(id=block.pk))
         except TradeError as e:
             await interaction.response.send_message(e.error_message, ephemeral=True)
         else:
             await trade.edit_message(None)
             await interaction.response.send_message(
-                f"{countryball.description(is_trade=True, include_emoji=True, bot=self.bot)} removed.", ephemeral=True
+                f"{block.description(is_trade=True, include_emoji=True, bot=self.bot)} removed.", ephemeral=True
             )
 
     @app_commands.command()
@@ -239,7 +239,7 @@ class Trade(commands.GroupCog):
         sorting: Literal["Newest", "Oldest"] = "Newest",
         trade_user: discord.User | None = None,
         days: int | None = None,
-        countryball: BallEnabledTransform | None = None,
+        block: BallEnabledTransform | None = None,
         special: SpecialEnabledTransform | None = None,
         group: BallGroupTransform | None = None,
         currency: bool = False,
@@ -256,8 +256,8 @@ class Trade(commands.GroupCog):
             The user you want to filter your trade history with.
         days: int | None
             Retrieve trade history from the last x days at most.
-        countryball: Ball | None
-            The countryball you want to filter the trade history by.
+        block: Ball | None
+            The block you want to filter the trade history by.
         special: Special | None
             The special you want to filter the trade history by.
         group: BallGroup | None
@@ -265,7 +265,7 @@ class Trade(commands.GroupCog):
         currency: bool
             Only show trades that included currency.
         filter: FilteringChoices
-            Only show trades involving countryballs matching a specific filter.
+            Only show trades involving items matching a specific filter.
         """
         await interaction.response.defer(ephemeral=True, thinking=True)
 
@@ -300,10 +300,10 @@ class Trade(commands.GroupCog):
             start_date = timezone.now() - timedelta(days=days)
             queryset = queryset.filter(date__gte=start_date)
 
-        if countryball or special or group:
+        if block or special or group:
             object_filter = Q()
-            if countryball:
-                object_filter &= Q(tradeobject__ballinstance__ball=countryball)
+            if block:
+                object_filter &= Q(tradeobject__ballinstance__ball=block)
             if special:
                 object_filter &= Q(tradeobject__ballinstance__special=special)
             if group:
@@ -354,7 +354,7 @@ class Trade(commands.GroupCog):
     async def bulk_add(
         self,
         interaction: Interaction,
-        countryball: BallEnabledTransform | None = None,
+        block: BallEnabledTransform | None = None,
         sort: SortingChoices | None = None,
         reverse: bool = False,
         special: SpecialEnabledTransform | None = None,
@@ -362,14 +362,14 @@ class Trade(commands.GroupCog):
         group: BallGroupTransform | None = None,
     ):
         """
-        Bulk add countryballs to the ongoing trade, with paramaters to aid with searching.
+        Bulk add blocks to the ongoing trade, with paramaters to aid with searching.
 
         Parameters
         ----------
-        countryball: Ball
-            The countryball you would like to filter the results to
+        block: Ball
+            The block you would like to filter the results to
         sort: SortingChoices
-            Choose how countryballs are sorted. Can be used to show duplicates.
+            Choose how blocks are sorted. Can be used to show duplicates.
         reverse: bool
             Reverse the sorted results.
         special: Special
@@ -401,8 +401,8 @@ class Trade(commands.GroupCog):
             .exclude(ball__tradeable=False)
             .exclude(special__tradeable=False)
         )
-        if countryball:
-            query = query.filter(ball=countryball)
+        if block:
+            query = query.filter(ball=block)
         if special:
             query = query.filter(special=special)
         if group:
@@ -425,7 +425,7 @@ class Trade(commands.GroupCog):
         await interaction.followup.send(view=view, ephemeral=True)
 
     @app_commands.command()
-    async def cancel(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def cancel(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Cancel your active trade.
         """

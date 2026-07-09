@@ -15,42 +15,42 @@ class StatusFlags(FlagConverter):
 
 
 class RarityFlags(FlagConverter):
-    chunked: bool = flag(default=True, description="Group together countryballs with the same rarity.")
+    chunked: bool = flag(default=True, description="Group together blocks with the same rarity.")
     include_disabled: bool = flag(
-        default=False, description="Include the countryballs that are disabled or with a rarity of 0."
+        default=False, description="Include the blocks that are disabled or with a rarity of 0."
     )
 
 
 class SpawnFlags(FlagConverter):
-    countryball: BallTransform | None = flag(
-        description="The countryball you want to spawn. Random according to rarities if not specified."
+    block: BallTransform | None = flag(
+        description="The block you want to spawn. Random according to rarities if not specified."
     )
     channel: discord.TextChannel | None = flag(
-        description="The channel you want to spawn the countryball in. Current channel if not specified.", default=None
+        description="The channel you want to spawn the block in. Current channel if not specified.", default=None
     )
     n: Range[int, 1, 100] = flag(
-        description="The number of countryballs to spawn. If no countryball was specified, it's random every time.",
+        description="The number of blocks to spawn. If no block was specified, it's random every time.",
         default=1,
     )
     special: SpecialTransform | None = flag(
-        description="Force the countryball to have a special attribute when caught."
+        description="Force the block to have a special attribute when mined."
     )
-    atk_bonus: int | None = flag(description="Force the countryball to have a specific attack bonus when caught.")
-    hp_bonus: int | None = flag(description="Force the countryball to have a specific health bonus when caught.")
+    atk_bonus: int | None = flag(description="Force the block to have a specific attack bonus when mined.")
+    hp_bonus: int | None = flag(description="Force the block to have a specific health bonus when mined.")
 
 
 class GiveBallFlags(FlagConverter):
-    countryball: BallTransform = flag(positional=True, description="The countryball you want to give")
+    block: BallTransform = flag(positional=True, description="The block you want to give")
     special: SpecialTransform | None = flag(description="A special event to set to this card")
     health_bonus: int | None = flag(description="Force a specific health bonus percentage")
     attack_bonus: int | None = flag(description="Force a specific attack bonus percentage")
 
 
 class BallsCountFlags(FlagConverter):
-    user: discord.User | None = flag(description="The player whose countryballs you are counting")
-    countryball: BallTransform | None = flag(description="Restrict countring to a specific countryball")
+    user: discord.User | None = flag(description="The player whose blocks you are counting")
+    block: BallTransform | None = flag(description="Restrict countring to a specific block")
     special: SpecialTransform | None = flag(description="Restrict counting to a special event")
-    deleted: bool = flag(default=False, description="Count the deleted countryballs too")
+    deleted: bool = flag(default=False, description="Count the deleted blocks too")
 
 
 class TradeHistoryFlags(FlagConverter):
@@ -61,23 +61,23 @@ class TradeHistoryFlags(FlagConverter):
 
 
 class UserTradeHistoryFlags(TradeHistoryFlags):
-    countryball: BallTransform | None = flag(description="The countryball you want to filter the history by")
+    block: BallTransform | None = flag(description="The block you want to filter the history by")
     user2: discord.User | None = flag(description="The second user you want to check the history of")
     special: SpecialTransform | None = flag(description="The special you want to filter the history by")
 
 
 class CreateFlags(FlagConverter):
-    name: Range[str, None, 48] = flag(description="The name of the countryball", aliases=["country"])
-    health: int = flag(description="The health of the countryball")
-    attack: int = flag(description="The attack of the countryball")
-    rarity: float = flag(description="The rarity of the countryball, if enabled")
-    emoji_id: Range[str, 17, 21] = flag(description="Emoji ID of this countryball.")
+    name: Range[str, None, 48] = flag(description="The name of the block", aliases=["country"])
+    health: int = flag(description="The health of the block")
+    attack: int = flag(description="The attack of the block")
+    rarity: float = flag(description="The rarity of the block, if enabled")
+    emoji_id: Range[str, 17, 21] = flag(description="Emoji ID of this block.")
     credits: Range[str, None, 64] = flag(description="Authors of wild card and collection card")
-    capacity_name: Range[str, None, 64] = flag(description="Name of the countryball's capacity")
-    capacity_description: Range[str, None, 256] = flag(description="Description of the countryball's capacity")
-    enabled: bool = flag(description="Type 'no' if you don't want this countryball to spawn.", default=True)
+    capacity_name: Range[str, None, 64] = flag(description="Name of the block's capacity")
+    capacity_description: Range[str, None, 256] = flag(description="Description of the block's capacity")
+    enabled: bool = flag(description="Type 'no' if you don't want this block to spawn.", default=True)
     tradeable: bool = flag(
-        description="Type 'no' if you don't want this countryball to be traded with others.", default=True
+        description="Type 'no' if you don't want this block to be traded with others.", default=True
     )
-    regime: RegimeTransform = flag(description="Political regime of this countryball")
-    economy: EconomyTransform | None = flag(description="Economical regime of this countryball", default=None)
+    regime: RegimeTransform = flag(description="Political regime of this block")
+    economy: EconomyTransform | None = flag(description="Economical regime of this block", default=None)

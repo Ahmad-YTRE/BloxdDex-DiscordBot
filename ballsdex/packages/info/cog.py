@@ -14,13 +14,13 @@ from ballsdex import __version__ as ballsdex_version
 from ballsdex.core.utils.django import row_count_estimate
 from ballsdex.core.utils.formatting import pagify
 from bd_models.models import Ball
-from bd_models.models import balls as countryballs
+from bd_models.models import balls as blocks
 from settings.models import settings
 
 from .license import LicenseInfo, extra_apps_dist
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.info")
 
@@ -40,12 +40,12 @@ class Info(commands.Cog):
     Simple info commands.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
     async def _get_10_balls_emojis(self) -> list[discord.Emoji]:
         balls: list[Ball] = random.choices(
-            [x for x in countryballs.values() if x.enabled], k=min(10, len(countryballs))
+            [x for x in blocks.values() if x.enabled], k=min(10, len(blocks))
         )
         emotes: list[discord.Emoji] = []
 
@@ -56,7 +56,7 @@ class Info(commands.Cog):
         return emotes
 
     @app_commands.command()
-    async def about(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def about(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Get information about this bot.
         """
@@ -68,7 +68,7 @@ class Info(commands.Cog):
             log.error("Failed to fetch 10 balls emotes", exc_info=True)
             balls = []
 
-        balls_count = len([x for x in countryballs.values() if x.enabled])
+        balls_count = len([x for x in blocks.values() if x.enabled])
         players_count = await sync_to_async(row_count_estimate)("player")
         balls_instances_count = await sync_to_async(row_count_estimate)("ballinstance")
 
@@ -111,8 +111,8 @@ class Info(commands.Cog):
             owner = bot_info.owner
         owner_credits = "by the team" if bot_info.team else "by"
         dex_credits = (
-            f"This instance is owned {owner_credits} {owner}.\nAn instance of [Ballsdex]"
-            f"({settings.repository}) by El Laggron and maintained by the Ballsdex Team "
+            f"This instance is owned {owner_credits} {owner}.\nAn instance of [BloxdDex]"
+            f"({settings.repository}) by El Laggron and maintained by the BloxdDex Team "
             f"and community of [contributors]({settings.repository}/graphs/contributors)."
         )
         embed.description = (
@@ -121,7 +121,7 @@ class Info(commands.Cog):
             f"*Running version **[{ballsdex_version}]({settings.repository}/releases)***\n"
             f"The bot has been online for **{formatted_uptime}**.\n\n"
             f"**{balls_count:,}** {settings.plural_collectible_name} to collect\n"
-            f"**{players_count:,}** players that caught "
+            f"**{players_count:,}** players that mined "
             f"**{balls_instances_count:,}** {settings.plural_collectible_name}\n"
             f"**{len(self.bot.guilds):,}** servers playing\n\n"
             f"{dex_credits}\n\n"
@@ -146,7 +146,7 @@ class Info(commands.Cog):
         await interaction.response.send_message(embed=embed, view=view)
 
     @app_commands.command()
-    async def help(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def help(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Show the list of commands from the bot.
         """

@@ -1,6 +1,6 @@
 """
 This file contains [discord.py transformers][discord.app_commands.Transformer] used to provide autocompletion,
-parsing and validation for various Ballsdex models.
+parsing and validation for various BloxdDex models.
 """
 
 import logging
@@ -22,7 +22,7 @@ from settings.models import settings
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.core.utils.transformers")
 
@@ -87,7 +87,7 @@ class ModelTransformer[T: "Model"](app_commands.Transformer, commands.Converter)
     def get_queryset(self) -> "QuerySet[T]":
         return self.model.objects.filter(**self.filters)
 
-    async def validate(self, ctx: commands.Context["BallsDexBot"], item: T):
+    async def validate(self, ctx: commands.Context["BloxdDexBot"], item: T):
         """
         A function to validate the fetched item before calling back the command.
 
@@ -121,7 +121,7 @@ class ModelTransformer[T: "Model"](app_commands.Transformer, commands.Converter)
         return await self.get_queryset().aget(**{f"{self.column}__iexact": value})
 
     async def get_options(
-        self, interaction: discord.Interaction["BallsDexBot"], value: str
+        self, interaction: discord.Interaction["BloxdDexBot"], value: str
     ) -> list[app_commands.Choice[int]]:
         """
         Generate the list of options for autocompletion
@@ -129,7 +129,7 @@ class ModelTransformer[T: "Model"](app_commands.Transformer, commands.Converter)
         raise NotImplementedError()
 
     async def autocomplete(
-        self, interaction: discord.Interaction["BallsDexBot"], value: str
+        self, interaction: discord.Interaction["BloxdDexBot"], value: str
     ) -> list[app_commands.Choice[int]]:
         t1 = time.time()
         choices: list[app_commands.Choice[int]] = []
@@ -139,7 +139,7 @@ class ModelTransformer[T: "Model"](app_commands.Transformer, commands.Converter)
         log.debug(f"{self.name.title()} autocompletion took {round((t2 - t1) * 1000)}ms, {len(choices)} results")
         return choices
 
-    async def transform(self, interaction: discord.Interaction["BallsDexBot"], value: str) -> T:
+    async def transform(self, interaction: discord.Interaction["BloxdDexBot"], value: str) -> T:
         if not value:
             raise commands.BadArgument("You need to use the autocomplete function for the economy selection.")
         try:
@@ -152,7 +152,7 @@ class ModelTransformer[T: "Model"](app_commands.Transformer, commands.Converter)
         else:
             return instance
 
-    async def convert(self, ctx: commands.Context["BallsDexBot"], argument: str) -> T:
+    async def convert(self, ctx: commands.Context["BloxdDexBot"], argument: str) -> T:
         try:
             instance = await self.get_from_text(argument)
             await self.validate(ctx, instance)
@@ -176,13 +176,13 @@ class BallInstanceTransformer(ModelTransformer[BallInstance]):
     async def get_from_text(self, value: str) -> BallInstance:
         return await self.get_queryset().aget(pk=int(value, 16))
 
-    async def validate(self, ctx: commands.Context["BallsDexBot"], item: BallInstance):
+    async def validate(self, ctx: commands.Context["BloxdDexBot"], item: BallInstance):
         # checking if the ball does belong to user, and a custom ID wasn't forced
         if item.player.discord_id != ctx.author.id:
             raise commands.BadArgument(f"That {settings.collectible_name} doesn't belong to you.")
 
     async def get_options(
-        self, interaction: discord.Interaction["BallsDexBot"], value: str
+        self, interaction: discord.Interaction["BloxdDexBot"], value: str
     ) -> list[app_commands.Choice[int]]:
         balls_queryset = self.get_queryset().filter(player__discord_id=interaction.user.id)
 
@@ -265,7 +265,7 @@ class TTLModelTransformer[T: "Model"](ModelTransformer[T]):
             self.search_map = {x: self.key(x).lower() for x in self.items.values()}
 
     async def get_options(
-        self, interaction: discord.Interaction["BallsDexBot"], value: str
+        self, interaction: discord.Interaction["BloxdDexBot"], value: str
     ) -> list[app_commands.Choice[str]]:
         await self.maybe_refresh()
 

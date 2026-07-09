@@ -13,7 +13,7 @@ from settings.models import settings
 from settings.utils import format_currency
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
     from .cog import Trade as TradeCog
 
@@ -39,7 +39,7 @@ class TradeListFormatter(Formatter[QuerySet[Trade], Select]):
 
 
 class HistoryView(LayoutView):
-    def __init__(self, bot: "BallsDexBot", trade: Trade, *, admin_view: bool = False, timeout: float | None = 180):
+    def __init__(self, bot: "BloxdDexBot", trade: Trade, *, admin_view: bool = False, timeout: float | None = 180):
         super().__init__(timeout=timeout)
         self.bot = bot
         self.trade = trade

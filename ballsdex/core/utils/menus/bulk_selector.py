@@ -4,7 +4,7 @@ import discord
 from discord.ui import ActionRow, Button, Select, Separator, TextDisplay
 
 from ballsdex.core.discord import Container
-from ballsdex.core.utils.menus.formatter import CountryballFormatter, TextFormatter
+from ballsdex.core.utils.menus.formatter import BlockFormatter, TextFormatter
 from ballsdex.core.utils.menus.menus import Menu
 from ballsdex.core.utils.menus.source import ModelSource, TextSource
 from bd_models.models import BallInstance
@@ -13,9 +13,9 @@ from settings.models import settings
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 def extract_select_related(fields: dict[str, dict] | bool, prefix: str = "") -> Generator[str, Any, None]:
@@ -28,14 +28,14 @@ def extract_select_related(fields: dict[str, dict] | bool, prefix: str = "") -> 
 
 class BaseBulkSelector(Container):
     """
-    Paginated multi-select countryball picker, shared by any command that needs to act on a batch
-    of countryballs at once. Subclasses must implement `on_confirm` to define what happens with the
+    Paginated multi-select block picker, shared by any command that needs to act on a batch
+    of blocks at once. Subclasses must implement `on_confirm` to define what happens with the
     selected ball IDs.
     """
 
     async def configure(
         self,
-        bot: "BallsDexBot",
+        bot: "BloxdDexBot",
         queryset: "QuerySet[BallInstance]",
         *,
         header: str,
@@ -52,7 +52,7 @@ class BaseBulkSelector(Container):
         self.select.placeholder = select_placeholder
         self.validate.label = confirm_label
 
-        self.formatter = CountryballFormatter(self.select, max_values=25)
+        self.formatter = BlockFormatter(self.select, max_values=25)
         self.source = ModelSource(queryset)
 
         self.menu = Menu(bot, self.view, self.source, self.formatter)
@@ -66,9 +66,9 @@ class BaseBulkSelector(Container):
         if self.display_menu and self.display_menu.source.get_max_pages() > 1:
             self.remove_item(self.display_menu.controls)
 
-        self.balls_count.content = f"-# {len(self.formatter.defaulted)} {settings.plural_collectible_name} selected"
+        self.blocks_count.content = f"-# {len(self.formatter.defaulted)} {settings.plural_collectible_name} selected"
         if not self.formatter.defaulted:
-            self.balls.content = "Nothing selected yet"
+            self.blocks.content = "Nothing selected yet"
             return
         text = ""
         # reuse the ordering given in the original queryset
@@ -83,17 +83,17 @@ class BaseBulkSelector(Container):
         # discord.ui.View caps the whole view at 4000 display characters total across every
         # TextDisplay, not just this one - leave room for the header/description/count texts
         # (which vary with `settings.plural_collectible_name`) plus a safety margin
-        other_text_length = len(self.header.content) + len(self.description.content) + len(self.balls_count.content)
+        other_text_length = len(self.header.content) + len(self.description.content) + len(self.blocks_count.content)
         page_length = max(500, 4000 - other_text_length - 200)
         self.display_menu = Menu(
-            self.bot, self.view, TextSource(text, page_length=page_length), TextFormatter(self.balls)
+            self.bot, self.view, TextSource(text, page_length=page_length), TextFormatter(self.blocks)
         )
         await self.display_menu.init(position=3, container=self)
 
     header = TextDisplay("## Bulk selection")
     sep1 = Separator()
-    balls = TextDisplay("Nothing selected yet")
-    balls_count = TextDisplay(f"-# 0 {settings.plural_collectible_name} selected")
+    blocks = TextDisplay("Nothing selected yet")
+    blocks_count = TextDisplay(f"-# 0 {settings.plural_collectible_name} selected")
     sep2 = Separator(spacing=discord.SeparatorSpacing.large)
     description = TextDisplay("-# Use the drop-down menu below to select your items.")
 

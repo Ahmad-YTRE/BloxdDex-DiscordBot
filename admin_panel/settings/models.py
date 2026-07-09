@@ -32,19 +32,19 @@ class Settings(models.Model):
     prefix = models.CharField(help_text="Prefix for all text commands", max_length=10, default="b.")
     collectible_name = models.TextField(
         help_text="The singular name of your collectible",
-        default="countryball",
+        default="block",
         validators=(RegexValidator(SLASH_COMMAND_RE, message="Invalid slash command name."),),
     )
     plural_collectible_name = models.TextField(
         help_text="The plural name of your collectible",
-        default="countryballs",
+        default="blocks",
         validators=(RegexValidator(SLASH_COMMAND_RE, message="Invalid slash command name."),),
     )
 
-    bot_name = models.TextField(help_text="The name of your bot", default="BallsDex")
+    bot_name = models.TextField(help_text="The name of your bot", default="BloxdDex")
     balls_slash_name = models.TextField(
         help_text='Overrides "/balls" slash command',
-        default="balls",
+        default="blocks",
         validators=(RegexValidator(SLASH_COMMAND_RE, message="Invalid slash command name."),),
     )
     site_base_url = models.URLField(
@@ -117,7 +117,7 @@ class Settings(models.Model):
     show_rarity = models.BooleanField(
         help_text="Whether to show the rarity on the card (replaces economy icon)", default=False
     )
-    catch_button_label = models.CharField(max_length=80, help_text="Label of the catch button", default="Catch me")
+    catch_button_label = models.CharField(max_length=80, help_text="Label of the catch button", default="Mine me")
 
     # spawn algorithm details
     spawn_chance_min = models.PositiveIntegerField(
@@ -137,7 +137,7 @@ class Settings(models.Model):
     # /about command
     about_description = models.TextField(
         help_text="A small text bot shown in the /about command.",
-        default="Collect countryballs on Discord, exchange them and battle with friends!",
+        default="Mine blocks on Discord, exchange them and battle with friends!",
     )
     repository = models.URLField(
         help_text="URL to the repository with the source code.",

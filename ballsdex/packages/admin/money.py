@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from discord.ext import commands
 from django.db import connection
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.utils import checks
 from ballsdex.core.utils.buttons import ConfirmChoiceView
 from bd_models.models import Player
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 @commands.hybrid_group()
 @checks.has_permissions("bd_models.view_player")
-async def money(ctx: commands.Context[BallsDexBot]):
+async def money(ctx: commands.Context[BloxdDexBot]):
     """
     Currency management tools
     """
@@ -25,7 +25,7 @@ async def money(ctx: commands.Context[BallsDexBot]):
 
 @money.command()
 @checks.has_permissions("bd_models.view_player")
-async def balance(ctx: commands.Context[BallsDexBot], user: discord.User):
+async def balance(ctx: commands.Context[BloxdDexBot], user: discord.User):
     """
     Show the balance of the user provided
 
@@ -44,7 +44,7 @@ async def balance(ctx: commands.Context[BallsDexBot], user: discord.User):
 
 @money.command()
 @checks.has_permissions("bd_models.change_player")
-async def add(ctx: commands.Context[BallsDexBot], user: discord.User, amount: int):
+async def add(ctx: commands.Context[BloxdDexBot], user: discord.User, amount: int):
     """
     Add coins to the user provided
 
@@ -71,7 +71,7 @@ async def add(ctx: commands.Context[BallsDexBot], user: discord.User, amount: in
 
 @money.command()
 @checks.has_permissions("bd_models.change_player")
-async def remove(ctx: commands.Context[BallsDexBot], user: discord.User, amount: int):
+async def remove(ctx: commands.Context[BloxdDexBot], user: discord.User, amount: int):
     """
     Remove coins from the user provided
 
@@ -102,7 +102,7 @@ async def remove(ctx: commands.Context[BallsDexBot], user: discord.User, amount:
 
 @money.command()
 @checks.has_permissions("bd_models.change_player")
-async def set(ctx: commands.Context[BallsDexBot], user: discord.User, amount: int):
+async def set(ctx: commands.Context[BloxdDexBot], user: discord.User, amount: int):
     """
     Set the balance of the user provided
 
@@ -133,7 +133,7 @@ async def set(ctx: commands.Context[BallsDexBot], user: discord.User, amount: in
 
 @money.command()
 @checks.is_superuser()
-async def setdefault(ctx: commands.Context[BallsDexBot], amount: int, force: bool = False):
+async def setdefault(ctx: commands.Context[BloxdDexBot], amount: int, force: bool = False):
     """
     Set the default amount of currency provided to new users.
 

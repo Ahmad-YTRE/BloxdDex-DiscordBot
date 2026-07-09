@@ -9,11 +9,11 @@ from ballsdex.core import tracing
 from bd_models.models import GuildConfig
 from settings.models import settings
 
-from .countryball import BallSpawnView
+from .block import BallSpawnView
 from .spawn import BaseSpawnManager
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.countryballs")
 
@@ -21,7 +21,7 @@ log = logging.getLogger("ballsdex.packages.countryballs")
 class CountryBallsSpawner(commands.Cog):
     spawn_manager: BaseSpawnManager
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
         self.cache: dict[int, int] = {}
         self.countryball_cls = BallSpawnView
@@ -80,7 +80,7 @@ class CountryBallsSpawner(commands.Cog):
             await ball.spawn(cast(discord.TextChannel, channel))
 
     @commands.Cog.listener()
-    async def on_ballsdex_settings_change(
+    async def on_bloxdex_settings_change(
         self, guild: discord.Guild, channel: discord.TextChannel | None = None, enabled: bool | None = None
     ):
         if guild.id not in self.cache:

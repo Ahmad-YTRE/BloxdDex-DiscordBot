@@ -9,7 +9,7 @@ from ballsdex.core.discord import LayoutView, View
 from ballsdex.core.utils.menus import ChunkedListSource, Menu, SelectFormatter
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
 packages = importlib.metadata.packages_distributions()
@@ -48,12 +48,12 @@ def get_license_files(dist: importlib.metadata.Distribution) -> list[importlib.m
 
 class ExtraLicenseView(LayoutView):
     header = TextDisplay(
-        "This instance of Ballsdex is powered by 3rd-party packages whose information can be found below."
+        "This instance of BloxdDex is powered by 3rd-party packages whose information can be found below."
     )
     row = ActionRow()
 
     @row.select()
-    async def extra_package_select(self, interaction: discord.Interaction["BallsDexBot"], select: Select):
+    async def extra_package_select(self, interaction: discord.Interaction["BloxdDexBot"], select: Select):
         dist = extra_apps_dist[select.values[0]]
         text = f"## {dist.name} - {dist.version}\n"
         if summary := dist.metadata.get("Summary"):
@@ -78,11 +78,11 @@ class ExtraLicenseView(LayoutView):
 
 class LicenseInfo(View):
     @button(label="License info")
-    async def license_info(self, interaction: discord.Interaction["BallsDexBot"], _: Button):
+    async def license_info(self, interaction: discord.Interaction["BloxdDexBot"], _: Button):
         await interaction.response.send_message(
-            "This bot is an instance of BallsDex-DiscordBot "
-            "(hereinafter referred to as Ballsdex).\n"
-            "Ballsdex is a free and open source application made available to the public and "
+            "This bot is an instance of BloxdDex-DiscordBot "
+            "(hereinafter referred to as BloxdDex).\n"
+            "BloxdDex is a free and open source application made available to the public and "
             "licensed under the MIT license. The full text of this license is attached below.\n",
             ephemeral=True,
             file=discord.File(
@@ -91,7 +91,7 @@ class LicenseInfo(View):
         )
 
     @button(label="3rd party packages")
-    async def extra_packages(self, interaction: discord.Interaction["BallsDexBot"], _: Button):
+    async def extra_packages(self, interaction: discord.Interaction["BloxdDexBot"], _: Button):
         view = ExtraLicenseView()
         menu = Menu(
             interaction.client,

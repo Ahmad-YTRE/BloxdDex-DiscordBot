@@ -8,9 +8,9 @@ from ballsdex.core.utils.formatting import pagify
 if TYPE_CHECKING:
     from django.db.models import Model, QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class Source[P]:

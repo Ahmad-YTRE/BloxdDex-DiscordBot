@@ -10,9 +10,9 @@ from discord.ui.view import BaseView as DiscordBaseView
 from ballsdex.core import tracing
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction[BallsDexBot]
+type Interaction = discord.Interaction[BloxdDexBot]
 
 log = logging.getLogger("ballsdex.core.discord")
 

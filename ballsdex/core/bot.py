@@ -66,7 +66,7 @@ DEFAULT_PACKAGES = (
 )
 
 
-def owner_check(ctx: commands.Context[BallsDexBot]):
+def owner_check(ctx: commands.Context[BloxdDexBot]):
     return ctx.bot.is_owner(ctx.author)
 
 
@@ -121,7 +121,7 @@ async def on_request_end(
     http_counter.labels(route_key, params.response.status).observe(time)
 
 
-class CommandTree[Bot: BallsDexBot](app_commands.CommandTree[Bot]):
+class CommandTree[Bot: BloxdDexBot](app_commands.CommandTree[Bot]):
     disable_time_check: bool = False
 
     async def _call(self, interaction: discord.Interaction[Bot]) -> None:
@@ -202,14 +202,14 @@ class CommandTree[Bot: BallsDexBot](app_commands.CommandTree[Bot]):
         return app_commands
 
 
-class BallsDexBot(commands.AutoShardedBot):
+class BloxdDexBot(commands.AutoShardedBot):
     """
-    BallsDex Discord bot
+    BloxdDex Discord bot
     """
 
     def __init__(
         self,
-        command_prefix: PrefixType[BallsDexBot],
+        command_prefix: PrefixType[BloxdDexBot],
         disable_message_content: bool = False,
         disable_time_check: bool = False,
         skip_tree_sync: bool = False,
@@ -316,7 +316,7 @@ class BallsDexBot(commands.AutoShardedBot):
         table.add_row("Special events", str(len(specials)))
 
         group_ball_ids: dict[int, set[int]] = defaultdict(set)
-        async for group_id, ball_id in BallGroup.objects.values_list("id", "countryballs__id"):
+        async for group_id, ball_id in BallGroup.objects.values_list("id", "blocks__id"):
             if ball_id is not None:
                 group_ball_ids[group_id].add(ball_id)
 

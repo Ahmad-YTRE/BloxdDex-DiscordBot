@@ -8,11 +8,11 @@ from bd_models.models import BallInstance
 from settings.models import settings
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
     from .menus import Menu
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class Formatter[P, I: discord.ui.Item]:
@@ -97,7 +97,7 @@ class ItemFormatter(Formatter[Iterable[discord.ui.Item], discord.ui.Container]):
             )
 
 
-class CountryballFormatter(Formatter[QuerySet[BallInstance], discord.ui.Select]):
+class BlockFormatter(Formatter[QuerySet[BallInstance], discord.ui.Select]):
     def __init__(self, item: discord.ui.Select, *, min_values: int = 1, max_values: int = 1):
         super().__init__(item)
         self.min_values = min_values
@@ -107,11 +107,11 @@ class CountryballFormatter(Formatter[QuerySet[BallInstance], discord.ui.Select])
     async def format_page(self, page):
         self.item.options = []
         async for ball in page:
-            emoji = self.menu.bot.get_emoji(int(ball.countryball.emoji_id))
+            emoji = self.menu.bot.get_emoji(int(ball.block.emoji_id))
             favorite = f"{settings.favorited_collectible_emoji} " if ball.favorite else ""
             special = ball.specialcard.emoji if ball.specialcard else ""
             self.item.add_option(
-                label=f"{favorite}{special}#{ball.pk:0X} {ball.countryball.country}",
+                label=f"{favorite}{special}#{ball.pk:0X} {ball.block.country}",
                 description=(
                     f"ATK: {ball.attack}({ball.attack_bonus:+d}%) "
                     f"• HP: {ball.health}({ball.health_bonus:+d}%) • "

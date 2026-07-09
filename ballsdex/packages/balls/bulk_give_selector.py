@@ -16,15 +16,15 @@ from .donation import BulkDonationRequest, add_view_all_button, check_giveable, 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class BulkGiveSelector(BaseBulkSelector):
     async def configure(
         self,
-        bot: "BallsDexBot",
+        bot: "BloxdDexBot",
         queryset: "QuerySet[BallInstance]",
         *,
         user: discord.User,

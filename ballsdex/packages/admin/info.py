@@ -7,7 +7,7 @@ from discord.utils import format_dt
 from django.urls import reverse
 from django.utils.timezone import get_current_timezone
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.discord import LayoutView
 from ballsdex.core.utils import checks
 from ballsdex.core.utils.enums import DONATION_POLICY_MAP, FRIEND_POLICY_MAP, MENTION_POLICY_MAP, PRIVATE_POLICY_MAP
@@ -25,20 +25,20 @@ class PlayerInfoView(discord.ui.View):
         self.player = player
         self.username = username
 
-    @discord.ui.button(label="Recent Catches", style=discord.ButtonStyle.primary)
-    async def recently_caught(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Display the last 10 catches of the user, and how long it took for each catch
+    @discord.ui.button(label="Recent Mines", style=discord.ButtonStyle.primary)
+    async def recently_mined(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Display the last 10 mines of the user, and how long it took for each mine
         recent_balls = (
             await BallInstance.objects.filter(player=self.player, spawned_time__isnull=False, trade_player=None)
             .select_related("ball")
             .order_by("-catch_date")[:10]
             .aall()
         )
-        embed = discord.Embed(title=f"Last {len(recent_balls)} catches for {self.username}")
+        embed = discord.Embed(title=f"Last {len(recent_balls)} mines for {self.username}")
         for ball in recent_balls:
-            catch_time = (ball.catch_date - ball.spawned_time).total_seconds()  # type: ignore
+            mining_time = (ball.catch_date - ball.spawned_time).total_seconds()  # type: ignore
             embed.add_field(
-                name=ball.description(short=True), value=f"{catch_time:.3f}s in {ball.server_id}", inline=False
+                name=ball.description(short=True), value=f"{mining_time:.3f}s in {ball.server_id}", inline=False
             )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -49,14 +49,14 @@ class GuildInfoView(discord.ui.View):
         self.queryset = queryset
         self.days = days
 
-    @discord.ui.button(label="List catchers", style=discord.ButtonStyle.primary)
-    async def list_catchers(self, interaction: discord.Interaction[BallsDexBot], button: discord.ui.Button):
+    @discord.ui.button(label="List miners", style=discord.ButtonStyle.primary)
+    async def list_miners(self, interaction: discord.Interaction[BloxdDexBot], button: discord.ui.Button):
         await interaction.response.defer(thinking=True, ephemeral=True)
         counts: dict[int, int] = {}
         async for instance in self.queryset:
             counts[instance.player.discord_id] = counts.get(instance.player.discord_id, 0) + 1
         if not counts:
-            await interaction.followup.send("No catches found for this period.", ephemeral=True)
+            await interaction.followup.send("No mines found for this period.", ephemeral=True)
             return
 
         lines: list[str] = []
@@ -81,7 +81,7 @@ class GuildInfoView(discord.ui.View):
 
 @commands.hybrid_group()
 @checks.has_permissions("bd_models.view_guildconfig", "bd_models.view_player")
-async def info(ctx: commands.Context[BallsDexBot]):
+async def info(ctx: commands.Context[BloxdDexBot]):
     """
     Information commands
     """
@@ -92,7 +92,7 @@ _DAYS_PRESETS = (7, 14, 30, 90)
 
 
 async def _days_autocomplete(
-    interaction: discord.Interaction[BallsDexBot], current: str
+    interaction: discord.Interaction[BloxdDexBot], current: str
 ) -> list[discord.app_commands.Choice[int]]:
     choices = [discord.app_commands.Choice(name=f"{preset} days", value=preset) for preset in _DAYS_PRESETS]
     if current.strip().isdigit():
@@ -104,7 +104,7 @@ async def _days_autocomplete(
 
 @info.command()
 @checks.has_permissions("bd_models.view_guildconfig")
-async def guild(ctx: commands.Context[BallsDexBot], guild_id: str, days: int = 7):
+async def guild(ctx: commands.Context[BloxdDexBot], guild_id: str, days: int = 7):
     """
     Show information about the server provided
 
@@ -115,7 +115,7 @@ async def guild(ctx: commands.Context[BallsDexBot], guild_id: str, days: int = 7
     guild_id: str | None
         The ID of the guild you want to get information about.
     days: int
-        The amount of days to look back for the amount of countryballs caught.
+        The amount of days to look back for the amount of blocks mined.
     """
     await ctx.defer(ephemeral=True)
     guild = ctx.bot.get_guild(int(guild_id))
@@ -155,11 +155,11 @@ async def guild(ctx: commands.Context[BallsDexBot], guild_id: str, days: int = 7
     embed.add_field(name="Spawn enabled:", value=spawn_enabled)
     embed.add_field(name="Created at:", value=format_dt(guild.created_at, style="F"))
     embed.add_field(
-        name=f"{settings.plural_collectible_name.title()} caught ({days} days):",
+        name=f"{settings.plural_collectible_name.title()} mined ({days} days):",
         value=await total_server_balls.acount(),
     )
     embed.add_field(
-        name=f"Amount of users who caught\n{settings.plural_collectible_name} ({days} days):",
+        name=f"Amount of users who mined\n{settings.plural_collectible_name} ({days} days):",
         value=len(set([x.player.discord_id async for x in total_server_balls])),
     )
 
@@ -170,7 +170,7 @@ async def guild(ctx: commands.Context[BallsDexBot], guild_id: str, days: int = 7
 
 @info.command()
 @checks.has_permissions("bd_models.view_player", "bd_models.view_ballinstance")
-async def user(ctx: commands.Context[BallsDexBot], user: discord.User, days: int = 7):
+async def user(ctx: commands.Context[BloxdDexBot], user: discord.User, days: int = 7):
     """
     Show information about the user provided
 
@@ -179,7 +179,7 @@ async def user(ctx: commands.Context[BallsDexBot], user: discord.User, days: int
     user: discord.User | None
         The user you want to get information about.
     days: int
-        The amount of days to look back for the amount of countryballs caught.
+        The amount of days to look back for the amount of blocks mined.
     """
     await ctx.defer(ephemeral=True)
     player = await Player.objects.aget_or_none(discord_id=user.id)
@@ -202,26 +202,26 @@ async def user(ctx: commands.Context[BallsDexBot], user: discord.User, days: int
         color=discord.Color.blurple(),
     )
     embed.add_field(
-        name=f"{settings.plural_collectible_name.title()} caught ({days} days):", value=len(total_user_balls)
+        name=f"{settings.plural_collectible_name.title()} mined ({days} days):", value=len(total_user_balls)
     )
     embed.add_field(
-        name=f"Unique {settings.plural_collectible_name} caught ({days} days):",
-        value=len(set([ball.countryball for ball in total_user_balls])),
+        name=f"Unique {settings.plural_collectible_name} mined ({days} days):",
+        value=len(set([ball.block for ball in total_user_balls])),
     )
     embed.add_field(
-        name=f"Total servers with {settings.plural_collectible_name} caught ({days} days):",
+        name=f"Total servers with {settings.plural_collectible_name} mined ({days} days):",
         value=len(set([x.server_id for x in total_user_balls])),
     )
     embed.add_field(
-        name=f"Total {settings.plural_collectible_name} caught:",
+        name=f"Total {settings.plural_collectible_name} mined:",
         value=await BallInstance.objects.filter(player__discord_id=user.id).acount(),
     )
     embed.add_field(
-        name=f"Total unique {settings.plural_collectible_name} caught:",
-        value=len(set([x.countryball for x in total_user_balls])),
+        name=f"Total unique {settings.plural_collectible_name} mined:",
+        value=len(set([x.block for x in total_user_balls])),
     )
     embed.add_field(
-        name=f"Total servers with {settings.plural_collectible_name} caught:",
+        name=f"Total servers with {settings.plural_collectible_name} mined:",
         value=len(set([x.server_id for x in total_user_balls])),
     )
     embed.set_thumbnail(url=user.display_avatar)  # type: ignore

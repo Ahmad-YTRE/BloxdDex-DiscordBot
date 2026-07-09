@@ -22,7 +22,7 @@ def default_settings_forward(apps: "Apps", schema_editor: "BaseDatabaseSchemaEdi
         (
             prompt_message(settings=instance, category=1, message="{user} You caught **{ball}**!"),
             prompt_message(settings=instance, category=2, message="{user} Wrong name!"),
-            prompt_message(settings=instance, category=3, message="A wild {collectible} appeared!"),
+            prompt_message(settings=instance, category=3, message="A wild {collectible} spawned!"),
             prompt_message(
                 settings=instance, category=4, message="{user} Sorry, this {collectible} was caught already!"
             ),

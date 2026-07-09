@@ -21,7 +21,7 @@ from django.utils import timezone
 
 from ballsdex.core.discord import UNKNOWN_INTERACTION, Container, LayoutView, Modal
 from ballsdex.core.utils.buttons import ConfirmChoiceView
-from ballsdex.core.utils.menus import CountryballFormatter, Menu, ModelSource, TextFormatter, TextSource
+from ballsdex.core.utils.menus import BlockFormatter, Menu, ModelSource, TextFormatter, TextSource
 from bd_models.enums import TradeCooldownPolicy
 from bd_models.models import BallInstance, Player, Trade, TradeObject
 from settings.models import settings
@@ -43,11 +43,11 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
     from opentelemetry.trace import SpanContext
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
     from .cog import Trade as TradeCog
 
-type Interaction = discord.Interaction[BallsDexBot]
+type Interaction = discord.Interaction[BloxdDexBot]
 
 log = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class TradingUser(Container):
     Attributes
     ----------
     proposal: set[int]
-        The set of countryball IDs in the user's proposal.
+        The set of block IDs in the user's proposal.
     locked: bool
         `True` if the user locked their proposal.
     cancelled: bool
@@ -134,7 +134,7 @@ class TradingUser(Container):
         self.confirmed: bool = False
 
         self.menu = Menu(
-            self.cog.bot, trade, ModelSource(self.get_queryset()), CountryballFormatter(self.select_menu, max_values=25)
+            self.cog.bot, trade, ModelSource(self.get_queryset()), BlockFormatter(self.select_menu, max_values=25)
         )
 
         self.view: TradeInstance
@@ -153,7 +153,7 @@ class TradingUser(Container):
     # ==== Utils ====
     def get_queryset(self) -> "QuerySet[BallInstance]":
         """
-        Get a prepared queryset with the countryballs proposed by this user.
+        Get a prepared queryset with the blocks proposed by this user.
         """
         if not self.proposal:
             return BallInstance.objects.none()
@@ -266,25 +266,25 @@ class TradingUser(Container):
 
     async def add_to_proposal(self, queryset: "QuerySet[BallInstance]"):
         """
-        Add countryballs to a trader's proposal.
+        Add blocks to a trader's proposal.
 
-        If an error is raised, the state of the given countryballs will not be edited.
+        If an error is raised, the state of the given blocks will not be edited.
 
         Parameters
         ----------
         queryset: QuerySet[BallInstance]
-            The queryset of countryballs being added. This must not be a list of already fetched objects.
+            The queryset of blocks being added. This must not be a list of already fetched objects.
 
         Raises
         ------
         LockedError
             The proposal is locked
         OwnershipError
-            One of the countryballs is not owned by the trading user
+            One of the blocks is not owned by the trading user
         AlreadyLockedError
-            One of the countryballs is locked in a different trade
+            One of the blocks is locked in a different trade
         NotTradeableError
-            One of the countryballs is not tradeable
+            One of the blocks is not tradeable
         """
         if self.locked:
             raise LockedError()
@@ -306,19 +306,19 @@ class TradingUser(Container):
 
     async def remove_from_proposal(self, queryset: "QuerySet[BallInstance]"):
         """
-        Remove the given countryball from the trader's proposal.
+        Remove the given block from the trader's proposal.
 
         Parameters
         ----------
         queryset: QuerySet[BallInstance]
-            The queryset of countryballs being removed. This must not be a list of already fetched objects.
+            The queryset of blocks being removed. This must not be a list of already fetched objects.
 
         Raises
         ------
         LockedError
             The proposal is locked
         NotProposedError
-            One or more countryballs were not listed in this proposal
+            One or more blocks were not listed in this proposal
         """
         if self.locked:
             raise LockedError()
@@ -405,7 +405,7 @@ class TradingUser(Container):
             happen in a normal UI path.
         IntegrityError
             The trade is being finished, but a mutation has been detected and the trade will be cancelled. This usually
-            happens if a proposed countryball is found out to not belong to the original user at this time.
+            happens if a proposed block is found out to not belong to the original user at this time.
         """
         # this should not be false, but it's safer to crash if that happens
         assert self.view.confirmation_phase is True
@@ -682,27 +682,27 @@ class TradeInstance(LayoutView):
         def queryset_for_update(trader: TradingUser):
             return trader.get_queryset().select_for_update(nowait=True, of=("self",)).only("player__discord_id")
 
-        for countryball in queryset_for_update(self.trader1):
-            if countryball.player.discord_id != self.trader1.player.discord_id:
-                # This is a invalid mutation, the player is not the owner of the countryball
+        for block in queryset_for_update(self.trader1):
+            if block.player.discord_id != self.trader1.player.discord_id:
+                # This is a invalid mutation, the player is not the owner of the block
                 raise IntegrityError()
-            countryball.player = self.trader2.player
-            countryball.trade_player = self.trader1.player
-            countryball.favorite = False
-            countryball.locked = None
-            balls.append(countryball)
-            trade_objects.append(TradeObject(trade=trade, ballinstance=countryball, player=self.trader1.player))
+            block.player = self.trader2.player
+            block.trade_player = self.trader1.player
+            block.favorite = False
+            block.locked = None
+            balls.append(block)
+            trade_objects.append(TradeObject(trade=trade, ballinstance=block, player=self.trader1.player))
 
-        for countryball in queryset_for_update(self.trader2):
-            if countryball.player.discord_id != self.trader2.player.discord_id:
-                # This is a invalid mutation, the player is not the owner of the countryball
+        for block in queryset_for_update(self.trader2):
+            if block.player.discord_id != self.trader2.player.discord_id:
+                # This is a invalid mutation, the player is not the owner of the block
                 raise IntegrityError()
-            countryball.player = self.trader1.player
-            countryball.trade_player = self.trader2.player
-            countryball.favorite = False
-            countryball.locked = None
-            balls.append(countryball)
-            trade_objects.append(TradeObject(trade=trade, ballinstance=countryball, player=self.trader2.player))
+            block.player = self.trader1.player
+            block.trade_player = self.trader2.player
+            block.favorite = False
+            block.locked = None
+            balls.append(block)
+            trade_objects.append(TradeObject(trade=trade, ballinstance=block, player=self.trader2.player))
 
         if self.trader1.money or self.trader2.money:
             player1 = money_check(self.trader1)

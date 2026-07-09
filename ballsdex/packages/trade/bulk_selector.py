@@ -11,15 +11,15 @@ from .errors import TradeError
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
     from .cog import Trade
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class BulkSelector(BaseBulkSelector):
-    async def configure(self, bot: "BallsDexBot", cog: "Trade", queryset: "QuerySet[BallInstance]"):
+    async def configure(self, bot: "BloxdDexBot", cog: "Trade", queryset: "QuerySet[BallInstance]"):
         self.cog = cog
         await super().configure(
             bot,

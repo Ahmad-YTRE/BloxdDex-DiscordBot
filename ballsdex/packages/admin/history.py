@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.discord import LayoutView
 from ballsdex.core.utils import checks
 from ballsdex.core.utils.menus import Menu, ModelSource
@@ -34,7 +34,7 @@ async def history(ctx: commands.Context):
 
 
 async def _build_history_view(
-    ctx: commands.Context["BallsDexBot"], queryset: "QuerySet[Trade]", title: str, admin_url_path: str | None = None
+    ctx: commands.Context["BloxdDexBot"], queryset: "QuerySet[Trade]", title: str, admin_url_path: str | None = None
 ):
     cog = cast("TradeCog | None", ctx.bot.get_cog("Trade"))
     if not cog:
@@ -59,11 +59,11 @@ async def _build_history_view(
         prev_button = Button(label="◀ Previous", style=discord.ButtonStyle.grey, disabled=index <= 0)
         next_button = Button(label="Next ▶", style=discord.ButtonStyle.grey, disabled=index >= len(pks) - 1)
 
-        async def go_to_prev(interaction: discord.Interaction["BallsDexBot"]):
+        async def go_to_prev(interaction: discord.Interaction["BloxdDexBot"]):
             await interaction.response.defer()
             await interaction.edit_original_response(view=await build_detail_view(pks, index - 1))
 
-        async def go_to_next(interaction: discord.Interaction["BallsDexBot"]):
+        async def go_to_next(interaction: discord.Interaction["BloxdDexBot"]):
             await interaction.response.defer()
             await interaction.edit_original_response(view=await build_detail_view(pks, index + 1))
 
@@ -72,7 +72,7 @@ async def _build_history_view(
         view.add_item(ActionRow(prev_button, next_button))
         return view
 
-    async def callback(interaction: discord.Interaction["BallsDexBot"]):
+    async def callback(interaction: discord.Interaction["BloxdDexBot"]):
         await interaction.response.defer(thinking=True, ephemeral=True)
         data = cast("discord.types.interactions.SelectMessageComponentInteractionData", interaction.data)
         pk = int(data["values"][0])
@@ -113,7 +113,7 @@ def _build_base_queryset(sort_oldest: bool, days: int | None) -> "QuerySet[Trade
 
 @history.command(name="user")
 @checks.has_permissions("bd_models.view_trade", "bd_models.view_tradeobject")
-async def history_user(ctx: commands.Context["BallsDexBot"], user: discord.User, *, flags: UserTradeHistoryFlags):
+async def history_user(ctx: commands.Context["BloxdDexBot"], user: discord.User, *, flags: UserTradeHistoryFlags):
     """
     Show your trade history.
 
@@ -137,8 +137,8 @@ async def history_user(ctx: commands.Context["BallsDexBot"], user: discord.User,
     else:
         queryset = queryset.filter(Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id))
 
-    if flags.countryball:
-        queryset = queryset.filter(Q(tradeobject__ballinstance__ball=flags.countryball)).distinct()
+    if flags.block:
+        queryset = queryset.filter(Q(tradeobject__ballinstance__ball=flags.block)).distinct()
     if flags.special:
         queryset = queryset.filter(Q(tradeobject__ballinstance__special=flags.special)).distinct()
     if getattr(flags, "currency", False):
@@ -147,20 +147,20 @@ async def history_user(ctx: commands.Context["BallsDexBot"], user: discord.User,
     await _build_history_view(ctx, queryset, title, f"/bd_models/trade/{query_params}")
 
 
-@history.command(name="countryball")
+@history.command(name="block")
 @checks.has_permissions("bd_models.view_trade", "bd_models.view_tradeobject")
-async def history_ball(ctx: commands.Context["BallsDexBot"], countryball_id: str, *, flags: TradeHistoryFlags):
+async def history_ball(ctx: commands.Context["BloxdDexBot"], block_id: str, *, flags: TradeHistoryFlags):
     """
-    Show the trade history of a countryball.
+    Show the trade history of a block.
 
     Parameters
     ----------
-    countryball_id: str
-        The ID of the countryball you want to check the history of.
+    block_id: str
+        The ID of the block you want to check the history of.
     """
 
     try:
-        ball = await BallInstance.objects.aget(id=int(countryball_id, 16))
+        ball = await BallInstance.objects.aget(id=int(block_id, 16))
     except ValueError:
         await ctx.send(f"The {settings.collectible_name} ID you gave is not valid.", ephemeral=True)
         return
@@ -185,7 +185,7 @@ async def history_ball(ctx: commands.Context["BallsDexBot"], countryball_id: str
 
 @history.command(name="trade")
 @checks.has_permissions("bd_models.view_trade", "bd_models.view_tradeobject")
-async def trade_info(ctx: commands.Context["BallsDexBot"], trade_id: str):
+async def trade_info(ctx: commands.Context["BloxdDexBot"], trade_id: str):
     """
     Show the contents of a certain trade.
 

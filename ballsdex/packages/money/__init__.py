@@ -6,12 +6,12 @@ from settings.models import settings
 from .cog import Money
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.money")
 
 
-async def setup(bot: "BallsDexBot"):
+async def setup(bot: "BloxdDexBot"):
     if not settings.currency_enabled:
         log.warning("Disabling currency cog as it is not configured in the settings.")
         return

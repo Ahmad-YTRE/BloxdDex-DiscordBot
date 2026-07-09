@@ -18,12 +18,12 @@ from bd_models.models import Ball, BallInstance, Player, Special, Trade, TradeOb
 from settings.models import PromptMessage, settings
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.countryballs")
 
 
-class CountryballNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!"):
+class BlockNamePrompt(Modal, title=f"Mine this {settings.collectible_name}!"):
     name = TextInput(
         label=f"Name of this {settings.collectible_name}", style=discord.TextStyle.short, placeholder="Your guess"
     )
@@ -32,20 +32,20 @@ class CountryballNamePrompt(Modal, title=f"Catch this {settings.collectible_name
         super().__init__()
         self.view = view
 
-    async def on_error(self, interaction: discord.Interaction["BallsDexBot"], error: Exception) -> None:
+    async def on_error(self, interaction: discord.Interaction["BloxdDexBot"], error: Exception) -> None:
         if isinstance(error, discord.NotFound) and error.code == 10062:
             return
-        log.exception("An error occurred in countryball catching prompt", exc_info=error)
+        log.exception("An error occurred in block mining prompt", exc_info=error)
         if interaction.response.is_done():
             await interaction.followup.send(f"An error occurred with this {settings.collectible_name}.")
         else:
             await interaction.response.send_message(f"An error occurred with this {settings.collectible_name}.")
 
-    async def on_submit(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def on_submit(self, interaction: discord.Interaction["BloxdDexBot"]):
         await interaction.response.defer(thinking=True)
 
         player, _ = await Player.objects.aget_or_create(discord_id=interaction.user.id)
-        if self.view.caught:
+        if self.view.mined:
             slow_message = settings.get_formatted_message(
                 category=PromptMessage.PromptType.SLOW,
                 mention=interaction.user.mention,
@@ -74,10 +74,10 @@ class CountryballNamePrompt(Modal, title=f"Catch this {settings.collectible_name
             )
             return
 
-        ball, has_caught_before = await self.view.catch_ball(interaction.user, player=player, guild=interaction.guild)
+        ball, has_mined_before = await self.view.mine_block(interaction.user, player=player, guild=interaction.guild)
 
         await interaction.followup.send(
-            self.view.get_catch_message(ball, has_caught_before, interaction.user.mention),
+            self.view.get_mine_message(ball, has_mined_before, interaction.user.mention),
             allowed_mentions=discord.AllowedMentions(users=player.can_be_mentioned),
         )
         await interaction.followup.edit_message(self.view.message.id, view=self.view)
@@ -86,12 +86,12 @@ class CountryballNamePrompt(Modal, title=f"Catch this {settings.collectible_name
 class BallSpawnView(View):
     """
     BallSpawnView is a Discord UI view that represents the spawning and interaction logic for a
-    countryball in the BallsDex bot. It handles user interactions, spawning mechanics, and
-    countryball catching logic.
+    block in the BloxdDex bot. It handles user interactions, spawning mechanics, and
+    block mining logic.
 
     Attributes
     ----------
-    bot: BallsDexBot
+    bot: BloxdDexBot
     model: Ball
         The ball being spawned.
     algo: str | None
@@ -99,13 +99,13 @@ class BallSpawnView(View):
     message: discord.Message
         The Discord message associated with this view once created with `spawn`.
     caught: bool
-        Whether the countryball has been caught yet.
+        Whether the countryblock has been mined yet.
     ballinstance: BallInstance | None
         If this is set, this ball instance will be spawned instead of creating a new ball instance.
         All properties are preserved, and if successfully caught, the owner is transferred (with
         a trade entry created). Use the `from_existing` constructor to use this.
     special: Special | None
-        Force the spawned countryball to have a special event attached. If None, a random one will
+        Force the spawned block to have a special event attached. If None, a random one will
         be picked.
     atk_bonus: int | None
         Force a specific attack bonus if set, otherwise random range defined in config.yml.
@@ -113,37 +113,37 @@ class BallSpawnView(View):
         Force a specific health bonus if set, otherwise random range defined in config.yml.
     """
 
-    def __init__(self, bot: "BallsDexBot", model: Ball):
+    def __init__(self, bot: "BloxdDexBot", model: Ball):
         super().__init__()
         self.bot = bot
         self.model = model
         self.algo: str | None = None
         self.message: discord.Message = discord.utils.MISSING
-        self.caught = False
+        self.mined = False
         self.ballinstance: BallInstance | None = None
         self.special: Special | None = None
         self.atk_bonus: int | None = None
         self.hp_bonus: int | None = None
         self.og_id: int
 
-        self.catch_button.label = settings.catch_button_label
+        self.mine_button.label = settings.mine_button_label
 
-    async def interaction_check(self, interaction: discord.Interaction["BallsDexBot"], /) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction["BloxdDexBot"], /) -> bool:
         return await interaction.client.blacklist_check(interaction)
 
     async def on_timeout(self):
-        self.catch_button.disabled = True
+        self.mine_button.disabled = True
         if self.message:
             try:
                 await self.message.edit(view=self)
             except discord.HTTPException:
                 pass
-        if self.ballinstance and not self.caught:
+        if self.ballinstance and not self.mined:
             await self.ballinstance.unlock()
 
-    @button(style=discord.ButtonStyle.primary, label="Catch me!")
-    async def catch_button(self, interaction: discord.Interaction["BallsDexBot"], button: Button):
-        if self.caught:
+    @button(style=discord.ButtonStyle.primary, label="Mine me!")
+    async def mine_button(self, interaction: discord.Interaction["BloxdDexBot"], button: Button):
+        if self.mined:
             slow_message = settings.get_formatted_message(
                 category=PromptMessage.PromptType.SLOW,
                 mention=interaction.user.mention,
@@ -152,10 +152,10 @@ class BallSpawnView(View):
             )
             await interaction.response.send_message(slow_message, ephemeral=True)
         else:
-            await interaction.response.send_modal(CountryballNamePrompt(self))
+            await interaction.response.send_modal(BlockNamePrompt(self))
 
     @classmethod
-    async def from_existing(cls, bot: "BallsDexBot", ball_instance: BallInstance):
+    async def from_existing(cls, bot: "BloxdDexBot", ball_instance: BallInstance):
         """
         Get an instance from an existing `BallInstance`. Instead of creating a new ball instance,
         this will transfer ownership of the existing instance when caught.
@@ -164,9 +164,9 @@ class BallSpawnView(View):
         out.
         """
         if await ball_instance.is_locked():
-            raise RuntimeError("This countryball is locked for a trade")
+            raise RuntimeError("This block is locked for a trade")
 
-        # prevent countryball from being traded while spawned
+        # prevent block from being traded while spawned
         await ball_instance.lock_for_trade()
 
         view = cls(bot, ball_instance.ball)
@@ -175,15 +175,15 @@ class BallSpawnView(View):
         return view
 
     @classmethod
-    async def get_random(cls, bot: "BallsDexBot"):
+    async def get_random(cls, bot: "BloxdDexBot"):
         """
-        Get a new instance with a random countryball. Rarity values are taken into account.
+        Get a new instance with a random block. Rarity values are taken into account.
         """
-        countryballs = list(filter(lambda m: m.enabled, balls.values()))
-        if not countryballs:
+        blocks = list(filter(lambda m: m.enabled, balls.values()))
+        if not blocks:
             raise RuntimeError("No ball to spawn")
-        rarities = [x.rarity for x in countryballs]
-        cb = random.choices(population=countryballs, weights=rarities, k=1)[0]
+        rarities = [x.rarity for x in blocks]
+        cb = random.choices(population=blocks, weights=rarities, k=1)[0]
         return cls(bot, cb)
 
     @property
@@ -210,19 +210,19 @@ class BallSpawnView(View):
             common_weight = 0
 
         weights = [x.rarity for x in population] + [common_weight]
-        # None is added representing the common countryball
+        # None is added representing the common block
         special: Special | None = random.choices(population=population + [None], weights=weights, k=1)[0]
 
         return special
 
     async def spawn(self, channel: discord.TextChannel) -> bool:
         """
-        Spawn a countryball in a channel.
+        Spawn a block in a channel.
 
         Parameters
         ----------
         channel: discord.TextChannel
-            The channel where to spawn the countryball. Must have permission to send messages
+            The channel where to spawn the block. Must have permission to send messages
             and upload files as a bot (not through interactions).
 
         Returns
@@ -284,17 +284,17 @@ class BallSpawnView(View):
         cname = cname.replace("\u201d", '"')
         return cname in possible_names
 
-    async def catch_ball(
+    async def mine_block(
         self, user: discord.User | discord.Member, *, player: Player | None, guild: discord.Guild | None
     ) -> tuple[BallInstance, bool]:
         """
-        Mark this countryball as caught and assign a new `BallInstance` (or transfer ownership if
+        Mark this block as mined and assign a new `BallInstance` (or transfer ownership if
         attribute `ballinstance` was set).
 
         Parameters
         ----------
         user: discord.User | discord.Member
-            The user that will obtain the new countryball.
+            The user that will obtain the new block.
         player: Player
             If already fetched, add the player model here to avoid an additional query.
         guild: discord.Guild | None
@@ -304,8 +304,8 @@ class BallSpawnView(View):
         Returns
         -------
         tuple[bool, BallInstance]
-            A tuple whose first value indicates if this is the first time this player catches this
-            countryball. Second value is the newly created countryball.
+            A tuple whose first value indicates if this is the first time this player mines this
+            block. Second value is the newly created block.
 
             If `ballinstance` was set, this value is returned instead.
 
@@ -315,22 +315,22 @@ class BallSpawnView(View):
             The `caught` attribute is already set to `True`. You should always check before calling
             this function that the ball was not caught.
         """
-        if self.caught:
+        if self.mined:
             raise RuntimeError("This ball was already caught!")
-        self.caught = True
-        self.catch_button.disabled = True
+        self.mined = True
+        self.mine_button.disabled = True
         caught_time = timezone.now()
         player = player or (await Player.objects.aget_or_create(discord_id=user.id))[0]
         is_new = not await BallInstance.objects.filter(player=player, ball=self.model).aexists()
 
         if self.ballinstance:
             if self.ballinstance.player_id == player.pk:
-                # the owner caught their own dropped countryball back, nothing changed hands
+                # the owner caught their own dropped block back, nothing changed hands
                 self.ballinstance.locked = None  # type: ignore
                 await self.ballinstance.asave(update_fields=("locked",))
                 return self.ballinstance, is_new
 
-            # if specified, do not create a countryball but switch owner
+            # if specified, do not create a block but switch owner
             # it's important to register this as a trade to avoid bypass
             trade = await Trade.objects.acreate(player1=self.ballinstance.player, player2=player)
             await TradeObject.objects.acreate(
@@ -374,7 +374,7 @@ class BallSpawnView(View):
         # logging and stats
         log.log(
             logging.INFO if user.id in self.bot.catch_log else logging.DEBUG,
-            f"{user} caught {settings.collectible_name} {self.model}, {special=}",
+            f"{user} mined {settings.collectible_name} {self.model}, {special=}",
         )
         if isinstance(user, discord.Member) and user.guild.member_count:
             caught_balls.labels(
@@ -388,31 +388,31 @@ class BallSpawnView(View):
 
         return ball, is_new
 
-    def get_catch_message(self, ball: BallInstance, new_ball: bool, mention: str) -> str:
+    def get_mine_message(self, ball: BallInstance, new_ball: bool, mention: str) -> str:
         """
-        Generate a user-facing message after a ball has been caught.
+        Generate a user-facing message after a block has been mined.
 
         Parameters
         ----------
         ball: BallInstance
             The newly created ball instance
         new_ball: bool
-            Boolean indicating if this is a new countryball in completion
-            (as returned by `catch_ball`)
+            Boolean indicating if this is a new block in completion
+            (as returned by `mine_block`)
         """
         text = ""
-        if ball.specialcard and ball.specialcard.catch_phrase:
-            text += f"*{ball.specialcard.catch_phrase}*\n"
+        if ball.specialcard and ball.specialcard.mine_phrase:
+            text += f"*{ball.specialcard.mine_phrase}*\n"
         if new_ball:
             text += f"This is a **new {settings.collectible_name}** that has been added to your completion!"
         if self.ballinstance:
             text += f"This {settings.collectible_name} was dropped by <@{self.og_id}>\n"
 
-        caught_message = (
+        mined_message = (
             settings.get_formatted_message(
                 category=PromptMessage.PromptType.CATCH, mention=mention, model=self.model, bot=self.bot
             )
             + " "
         )
 
-        return caught_message + f"`(#{ball.pk:0X}, {ball.attack_bonus:+}%/{ball.health_bonus:+}%)`\n\n{text}"
+        return mined_message + f"`(#{ball.pk:0X}, {ball.attack_bonus:+}%/{ball.health_bonus:+}%)`\n\n{text}"
