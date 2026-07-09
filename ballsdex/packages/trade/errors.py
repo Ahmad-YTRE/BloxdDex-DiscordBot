@@ -38,7 +38,7 @@ class CancelledError(TradeError):
 
 class NotTradeableError(TradeError):
     """
-    The countryball is not tradeable (ball, ballinstance or special)
+    The block is not tradeable (ball, ballinstance or special)
     """
 
     msg = f"This {settings.collectible_name} is not tradeable."
@@ -46,7 +46,7 @@ class NotTradeableError(TradeError):
 
 class AlreadyLockedError(TradeError):
     """
-    Raised when a locked countryball is about to be traded.
+    Raised when a locked block is about to be traded.
     """
 
     msg = (
@@ -57,7 +57,7 @@ class AlreadyLockedError(TradeError):
 
 class NotProposedError(TradeError):
     """
-    A countryball was attempted to be removed when it was not part of the proposal.
+    A block was attempted to be removed when it was not part of the proposal.
     """
 
     msg = f"This {settings.collectible_name} is not part of your proposal and cannot be removed."
@@ -65,7 +65,7 @@ class NotProposedError(TradeError):
 
 class OwnershipError(TradeError):
     """
-    A countryball is attempting to be traded, but it's not owned by the player.
+    A block is attempting to be traded, but it's not owned by the player.
     """
 
     msg = f"You do not own this {settings.collectible_name}."
@@ -74,7 +74,7 @@ class OwnershipError(TradeError):
 class IntegrityError(TradeError):
     """
     An attempt to cheat is being detected, which must cancel the trade.
-    This happens when the ownership of the countryball changes while processing the trade.
+    This happens when the ownership of the block changes while processing the trade.
     """
 
     msg = "An attempt to modify the trade has been detected, the trade is cancelled to prevent cheating."

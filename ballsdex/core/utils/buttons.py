@@ -7,7 +7,7 @@ from discord.ui import Button
 from ballsdex.core.discord import View
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
 class ConfirmChoiceView(View):
@@ -16,7 +16,7 @@ class ConfirmChoiceView(View):
 
     Parameters
     ----------
-    ctx: Interaction[BallsDexBot] | commands.Context[BallsDexBot]
+    ctx: Interaction[BloxdDexBot] | commands.Context[BloxdDexBot]
         Either a context or interaction.
     user: discord.User | None
         The user you're interacting with. If `None`, then `interaction.user` is used.
@@ -46,7 +46,7 @@ class ConfirmChoiceView(View):
 
     def __init__(
         self,
-        ctx: discord.Interaction["BallsDexBot"] | commands.Context["BallsDexBot"],
+        ctx: discord.Interaction["BloxdDexBot"] | commands.Context["BloxdDexBot"],
         user: Optional[discord.User] = None,
         accept_message: str = "Confirmed",
         cancel_message: str = "Cancelled",
@@ -59,12 +59,12 @@ class ConfirmChoiceView(View):
         else:
             self.interaction = ctx.interaction
             self.user = user or ctx.author
-        self.interaction_response: discord.Interaction["BallsDexBot"]
+        self.interaction_response: discord.Interaction["BloxdDexBot"]
         self.accept_message = accept_message
         self.cancel_message = cancel_message
         self.message: discord.Message | None = None
 
-    async def interaction_check(self, interaction: discord.Interaction["BallsDexBot"]) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction["BloxdDexBot"]) -> bool:
         if not await interaction.client.blacklist_check(interaction):
             return False
         self.interaction_response = interaction
@@ -90,7 +90,7 @@ class ConfirmChoiceView(View):
             pass
 
     @discord.ui.button(style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}")
-    async def confirm_button(self, interaction: discord.Interaction["BallsDexBot"], button: Button):
+    async def confirm_button(self, interaction: discord.Interaction["BloxdDexBot"], button: Button):
         for item in self.children:
             item.disabled = True  # type: ignore
 
@@ -105,7 +105,7 @@ class ConfirmChoiceView(View):
         self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.danger, emoji="\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}")
-    async def cancel_button(self, interaction: discord.Interaction["BallsDexBot"], button: Button):
+    async def cancel_button(self, interaction: discord.Interaction["BloxdDexBot"], button: Button):
         for item in self.children:
             item.disabled = True  # type: ignore
 

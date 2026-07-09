@@ -11,7 +11,7 @@ from bd_models.models import Ball, BallInstance, Player, Special
 from settings.models import settings
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
 class CountryballsViewer(LayoutView):
@@ -23,7 +23,7 @@ class CountryballsViewer(LayoutView):
         self.ephemeral = ephemeral
 
     @select_row.select()
-    async def selected(self, interaction: discord.Interaction["BallsDexBot"], select: Select):
+    async def selected(self, interaction: discord.Interaction["BloxdDexBot"], select: Select):
         await interaction.response.defer(thinking=True, ephemeral=self.ephemeral)
         ball = await BallInstance.objects.prefetch_related("trade_player").aget(pk=select.values[0])
         content, file, view = await ball.prepare_for_message(interaction)
@@ -33,7 +33,7 @@ class CountryballsViewer(LayoutView):
     quit_row = ActionRow()
 
     @quit_row.button(label="Quit", style=discord.ButtonStyle.danger)
-    async def quit_button(self, interaction: discord.Interaction["BallsDexBot"], button_obj: Button):
+    async def quit_button(self, interaction: discord.Interaction["BloxdDexBot"], button_obj: Button):
         self.stop()
         for item in self.walk_children():
             if hasattr(item, "disabled"):
@@ -50,7 +50,7 @@ class CountryballsDuplicateSource(LayoutView):
     select_row = ActionRow()
 
     @select_row.select()
-    async def callback(self, interaction: discord.Interaction["BallsDexBot"], select: Select):
+    async def callback(self, interaction: discord.Interaction["BloxdDexBot"], select: Select):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
         player = await Player.objects.aget(discord_id=interaction.user.id)
@@ -59,7 +59,7 @@ class CountryballsDuplicateSource(LayoutView):
             .values("player_id")
             .annotate(total=Count("id"), traded=Count("id", filter=Q(trade_player_id__isnull=False)))
         )
-        countryball = None
+        block = None
         if self.is_special:
             special = await Special.objects.aget(id=select.values[0])
             name = special.name
@@ -72,9 +72,9 @@ class CountryballsDuplicateSource(LayoutView):
                 .order_by("-count")
             )
         else:
-            countryball = await Ball.objects.aget(id=select.values[0])
-            name = countryball.country
-            balls_query = balls_query.filter(ball=countryball).annotate(
+            block = await Ball.objects.aget(id=select.values[0])
+            name = block.country
+            balls_query = balls_query.filter(ball=block).annotate(
                 specials=Count(
                     "id",
                     filter=Q(special_id__isnull=False)
@@ -82,7 +82,7 @@ class CountryballsDuplicateSource(LayoutView):
                 )
             )
             grouped_query = (
-                BallInstance.objects.filter(player=player, ball=countryball)
+                BallInstance.objects.filter(player=player, ball=block)
                 .exclude(special_id=None)
                 .exclude(special__hidden=True)
                 .values("special__name")
@@ -116,10 +116,10 @@ class CountryballsDuplicateSource(LayoutView):
 
         embed = discord.Embed(title=f"{name} Collection", description=desc, color=discord.Color.blurple())
         embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
-        if countryball:
-            file_location = countryball.wild_card.path
-            file = discord.File(file_location, filename="countryball.png")
-            embed.set_thumbnail(url="attachment://countryball.png")
+        if block:
+            file_location = block.wild_card.path
+            file = discord.File(file_location, filename="block.png")
+            embed.set_thumbnail(url="attachment://block.png")
             await interaction.followup.send(embed=embed, file=file)
         else:
             await interaction.followup.send(embed=embed)
@@ -127,7 +127,7 @@ class CountryballsDuplicateSource(LayoutView):
     quit_row = ActionRow()
 
     @quit_row.button(label="Quit", style=discord.ButtonStyle.danger)
-    async def quit_button(self, interaction: discord.Interaction["BallsDexBot"], button_obj: Button):
+    async def quit_button(self, interaction: discord.Interaction["BloxdDexBot"], button_obj: Button):
         self.stop()
         for item in self.walk_children():
             if hasattr(item, "disabled"):

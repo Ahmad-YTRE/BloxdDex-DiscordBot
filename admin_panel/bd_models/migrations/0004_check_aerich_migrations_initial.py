@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                         blank=True, help_text="Discord channel ID where balls will spawn", null=True
                     ),
                 ),
-                ("enabled", models.BooleanField(help_text="Whether the bot will spawn countryballs in this guild")),
+                ("enabled", models.BooleanField(help_text="Whether the bot will spawn blocks in this guild")),
                 ("silent", models.BooleanField()),
             ],
             options={"db_table": "guildconfig", "managed": True},

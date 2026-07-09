@@ -21,7 +21,7 @@ log = logging.getLogger("ballsdex.core.commands")
 if TYPE_CHECKING:
     from admin_panel.logging import DequeHandler
 
-    from .bot import BallsDexBot
+    from .bot import BloxdDexBot
 
 
 class SimpleCheckView(View):
@@ -30,13 +30,13 @@ class SimpleCheckView(View):
         self.ctx = ctx
         self.value = False
 
-    async def interaction_check(self, interaction: discord.Interaction["BallsDexBot"]) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction["BloxdDexBot"]) -> bool:
         if not await interaction.client.blacklist_check(interaction):
             return False
         return interaction.user == self.ctx.author
 
     @discord.ui.button(style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}")
-    async def confirm_button(self, interaction: discord.Interaction["BallsDexBot"], button: discord.ui.Button):
+    async def confirm_button(self, interaction: discord.Interaction["BloxdDexBot"], button: discord.ui.Button):
         await interaction.response.edit_message(content="Starting upload...", view=None)
         self.value = True
         self.stop()
@@ -44,10 +44,10 @@ class SimpleCheckView(View):
 
 class Core(commands.Cog):
     """
-    Core commands of BallsDex bot
+    Core commands of BloxdDex bot
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
     @commands.command()
@@ -181,7 +181,7 @@ class Core(commands.Cog):
         """
         Upload all guild emojis used by the bot to application emojis.
 
-        The emoji IDs of the countryballs are updated afterwards.
+        The emoji IDs of the blocks are updated afterwards.
         This does not delete guild emojis after they were migrated.
         """
         balls = Ball.objects.all()

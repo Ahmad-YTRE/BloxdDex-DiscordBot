@@ -18,7 +18,7 @@ from settings.models import settings
 from .views import RelationContainer, SettingsContainer
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
 class Player(commands.GroupCog):
@@ -26,7 +26,7 @@ class Player(commands.GroupCog):
     Manage your account settings.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
         self.active_friend_requests = {}
         if not self.bot.intents.members and self.__cog_app_commands_group__:
@@ -40,7 +40,7 @@ class Player(commands.GroupCog):
     # money = app_commands.Group(name="money", description="Money commands")
 
     @app_commands.command(name="settings")
-    async def psettings(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def psettings(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Edit your player settings
         """
@@ -52,7 +52,7 @@ class Player(commands.GroupCog):
         await interaction.response.send_message(view=layout, ephemeral=True)
 
     @friend.command(name="add")
-    async def friend_add(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User):
+    async def friend_add(self, interaction: discord.Interaction["BloxdDexBot"], user: discord.User):
         """
         Add another user as a friend.
 
@@ -131,7 +131,7 @@ class Player(commands.GroupCog):
         self.active_friend_requests[(player1.discord_id, player2.discord_id)] = False
 
     @friend.command(name="remove")
-    async def friend_remove(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User):
+    async def friend_remove(self, interaction: discord.Interaction["BloxdDexBot"], user: discord.User):
         """
         Remove a friend.
 
@@ -161,7 +161,7 @@ class Player(commands.GroupCog):
             await interaction.response.send_message(f"{user.name} has been removed as a friend.", ephemeral=True)
 
     @friend.command(name="list")
-    async def friend_list(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def friend_list(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         View all your friends.
         """
@@ -192,7 +192,7 @@ class Player(commands.GroupCog):
         await interaction.response.send_message(view=view, ephemeral=True)
 
     @blocked.command(name="add")
-    async def block_add(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User):
+    async def block_add(self, interaction: discord.Interaction["BloxdDexBot"], user: discord.User):
         """
         Block another user.
 
@@ -246,7 +246,7 @@ class Player(commands.GroupCog):
         await interaction.followup.send(f"You have now blocked {user.name}.", ephemeral=True)
 
     @blocked.command(name="remove")
-    async def block_remove(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User):
+    async def block_remove(self, interaction: discord.Interaction["BloxdDexBot"], user: discord.User):
         """
         Unblock a user.
 
@@ -275,7 +275,7 @@ class Player(commands.GroupCog):
             await interaction.response.send_message(f"{user.name} has been unblocked.", ephemeral=True)
 
     @blocked.command(name="list")
-    async def blocked_list(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def blocked_list(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         View all the users you have blocked.
         """
@@ -302,7 +302,7 @@ class Player(commands.GroupCog):
         await interaction.response.send_message(view=view, ephemeral=True)
 
     @app_commands.command()
-    async def info(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def info(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Display some of your info in the bot!
         """
@@ -315,19 +315,19 @@ class Player(commands.GroupCog):
         ball = await BallInstance.objects.prefetch_related("special", "trade_player").filter(player=player).aall()
 
         user = interaction.user
-        bot_countryballs = {x: y.emoji_id for x, y in balls.items() if y.enabled}
-        total_countryballs = len(bot_countryballs)
-        owned_countryballs = set(
+        bot_blocks = {x: y.emoji_id for x, y in balls.items() if y.enabled}
+        total_blocks = len(bot_blocks)
+        owned_blocks = set(
             [x[0] async for x in player.balls.filter(ball__enabled=True).distinct().values_list("ball_id")]
         )
 
-        if total_countryballs > 0:
-            completion_percentage = f"{round(len(owned_countryballs) / total_countryballs * 100, 1)}%"
+        if total_blocks > 0:
+            completion_percentage = f"{round(len(owned_blocks) / total_blocks * 100, 1)}%"
         else:
             completion_percentage = "0.0%"
 
-        caught_owned = [x for x in ball if x.trade_player is None]
-        balls_owned = [x for x in ball]
+        mined_owned = [x for x in ball if x.trade_player is None]
+        items_owned = [x for x in ball]
         special = [x for x in ball if x.special is not None]
         trades = Trade.objects.filter(
             Q(player1__discord_id=interaction.user.id) | Q(player2__discord_id=interaction.user.id)
@@ -360,8 +360,8 @@ class Player(commands.GroupCog):
             f"**Amount of Blocked Users:** {blocks}\n"
             "## Player Stats\n"
             f"**Completion:** {completion_percentage}\n"
-            f"**{settings.collectible_name.title()}s Owned:** {len(balls_owned):,}\n"
-            f"**Caught {settings.collectible_name.title()}s Owned**: {len(caught_owned):,}\n"
+            f"**{settings.collectible_name.title()}s Owned:** {len(items_owned):,}\n"
+            f"**Caught {settings.collectible_name.title()}s Owned**: {len(mined_owned):,}\n"
             f"**Special {settings.collectible_name.title()}s:** {len(special):,}\n"
             f"**Trades Completed:** {len(trades):,}\n"
             f"**Amount of Users Traded With:** {len(trade_partners):,}\n"

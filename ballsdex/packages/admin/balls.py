@@ -12,7 +12,7 @@ from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
 from django.urls import reverse
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.utils import checks
 from ballsdex.core.utils.buttons import ConfirmChoiceView
 from bd_models.models import Ball, BallInstance, Player, Special, Trade, TradeObject
@@ -23,16 +23,16 @@ from .flags import BallsCountFlags, CreateFlags, GiveBallFlags, SpawnFlags
 
 if TYPE_CHECKING:
     from ballsdex.packages.countryballs.cog import CountryBallsSpawner
-    from ballsdex.packages.countryballs.countryball import BallSpawnView
+    from ballsdex.packages.countryballs.block import BallSpawnView
 
 log = logging.getLogger("ballsdex.packages.admin.balls")
 FILENAME_RE = re.compile(r"^(.+)(\.\S+)$")
 
 
 async def _spawn_bomb(
-    ctx: commands.Context[BallsDexBot],
-    countryball_cls: type["BallSpawnView"],
-    countryball: Ball | None,
+    ctx: commands.Context[BloxdDexBot],
+    block_cls: type["BallSpawnView"],
+    block: Ball | None,
     channel: discord.TextChannel,
     n: int,
     special: Special | None = None,
@@ -47,7 +47,7 @@ async def _spawn_bomb(
         for i in range(5 * 12 * 10):  # timeout progress after 10 minutes
             await edit_func(
                 content=f"Spawn bomb in progress in {channel.mention}, "
-                f"{settings.collectible_name.title()}: {countryball or 'Random'}\n"
+                f"{settings.collectible_name.title()}: {block or 'Random'}\n"
                 f"{spawned}/{n} spawned ({round((spawned / n) * 100)}%)"
             )
             await asyncio.sleep(5)
@@ -58,10 +58,10 @@ async def _spawn_bomb(
     task = ctx.bot.loop.create_task(update_message_loop())
     try:
         for i in range(n):
-            if not countryball:
-                ball = await countryball_cls.get_random(ctx.bot)
+            if not block:
+                ball = await block_cls.get_random(ctx.bot)
             else:
-                ball = countryball_cls(ctx.bot, countryball)
+                ball = block_cls(ctx.bot, block)
             ball.special = special
             ball.atk_bonus = atk_bonus
             ball.hp_bonus = hp_bonus
@@ -84,28 +84,28 @@ async def _spawn_bomb(
 
 
 @commands.hybrid_group(name=settings.balls_slash_name)
-async def balls(ctx: commands.Context[BallsDexBot]):
+async def balls(ctx: commands.Context[BloxdDexBot]):
     """
-    Countryballs management
+    Blocks management
     """
     await ctx.send_help(ctx.command)
 
 
 @balls.command()
 @checks.has_permissions("bd_models.add_ballinstance")
-async def spawn(ctx: commands.Context[BallsDexBot], *, flags: SpawnFlags):
+async def spawn(ctx: commands.Context[BloxdDexBot], *, flags: SpawnFlags):
     """
-    Force spawn a random or specified countryball.
+    Force spawn a random or specified block.
     """
     # the transformer triggered a response, meaning user tried an incorrect input
     cog = cast("CountryBallsSpawner | None", ctx.bot.get_cog("CountryBallsSpawner"))
     if not cog:
         prefix = settings.prefix if ctx.bot.intents.message_content or not ctx.bot.user else f"{ctx.bot.user.mention} "
-        # do not replace `countryballs` with `settings.collectible_name`, it is intended
+        # do not replace `blocks` with `settings.collectible_name`, it is intended
         await ctx.send(
-            "The `countryballs` package is not loaded, this command is unavailable.\n"
+            "The `blocks` package is not loaded, this command is unavailable.\n"
             "Please resolve the errors preventing this package from loading. Use "
-            f'"{prefix}reload countryballs" to try reloading it.',
+            f'"{prefix}reload blocks" to try reloading it.',
             ephemeral=True,
         )
         return
@@ -120,8 +120,8 @@ async def spawn(ctx: commands.Context[BallsDexBot], *, flags: SpawnFlags):
     if flags.n > 1:
         await _spawn_bomb(
             ctx,
-            cog.countryball_cls,
-            flags.countryball,
+            cog.block_cls,
+            flags.block,
             flags.channel or ctx.channel,  # type: ignore
             flags.n,
             flags.special,
@@ -130,17 +130,17 @@ async def spawn(ctx: commands.Context[BallsDexBot], *, flags: SpawnFlags):
         )
         log.info(
             f"{ctx.author} spawned {settings.collectible_name}"
-            f" {flags.countryball or 'random'} {flags.n} times in {flags.channel or ctx.channel}"
+            f" {flags.block or 'random'} {flags.n} times in {flags.channel or ctx.channel}"
             + (f" ({', '.join(special_attrs)})." if special_attrs else "."),
             extra={"webhook": True},
         )
         return
 
     await ctx.defer(ephemeral=True)
-    if not flags.countryball:
-        ball = await cog.countryball_cls.get_random(ctx.bot)
+    if not flags.block:
+        ball = await cog.block_cls.get_random(ctx.bot)
     else:
-        ball = cog.countryball_cls(ctx.bot, flags.countryball)
+        ball = cog.block_cls(ctx.bot, flags.block)
     ball.special = flags.special
     ball.atk_bonus = flags.atk_bonus
     ball.hp_bonus = flags.hp_bonus
@@ -157,20 +157,20 @@ async def spawn(ctx: commands.Context[BallsDexBot], *, flags: SpawnFlags):
 
 @balls.command()
 @checks.has_permissions("bd_models.add_ballinstance")
-async def give(ctx: commands.Context[BallsDexBot], user: discord.User, *, flags: GiveBallFlags):
+async def give(ctx: commands.Context[BloxdDexBot], user: discord.User, *, flags: GiveBallFlags):
     """
-    Give the specified countryball to a player.
+    Give the specified block to a player.
 
     Parameters
     ----------
     user: discord.User
-        The user you want to give a countryball to
+        The user you want to give a block to
     """
     await ctx.defer(ephemeral=True)
 
     player, created = await Player.objects.aget_or_create(discord_id=user.id)
     instance = await BallInstance.objects.acreate(
-        ball=flags.countryball,
+        ball=flags.block,
         player=player,
         attack_bonus=(
             flags.attack_bonus
@@ -185,13 +185,13 @@ async def give(ctx: commands.Context[BallsDexBot], user: discord.User, *, flags:
         special=flags.special,
     )
     await ctx.send(
-        f"`{flags.countryball.country}` (`{instance.pk:0X}`) "
+        f"`{flags.block.country}` (`{instance.pk:0X}`) "
         f"{settings.collectible_name} was successfully given to "
         f"`{user}`.\nSpecial: `{flags.special.name if flags.special else None}` • ATK: "
         f"`{instance.attack_bonus:+d}` • HP:`{instance.health_bonus:+d}` "
     )
     log.info(
-        f"{ctx.author} gave {settings.collectible_name} {flags.countryball.country} (`{instance.pk:0X}`) "
+        f"{ctx.author} gave {settings.collectible_name} {flags.block.country} (`{instance.pk:0X}`) "
         f"to {user}. (Special={flags.special.name if flags.special else None} "
         f"ATK={instance.attack_bonus:+d} HP={instance.health_bonus:+d}).",
         extra={"webhook": True},
@@ -200,17 +200,17 @@ async def give(ctx: commands.Context[BallsDexBot], user: discord.User, *, flags:
 
 @balls.command(name="info")
 @checks.has_permissions("bd_models.view_ballinstance")
-async def balls_info(ctx: commands.Context[BallsDexBot], countryball_id: str):
+async def balls_info(ctx: commands.Context[BloxdDexBot], block_id: str):
     """
-    Show information about a countryball.
+    Show information about a block.
 
     Parameters
     ----------
-    countryball_id: str
-        The ID of the countryball you want to get information about.
+    block_id: str
+        The ID of the block you want to get information about.
     """
     try:
-        pk = int(countryball_id, 16)
+        pk = int(block_id, 16)
     except ValueError:
         await ctx.send(f"The {settings.collectible_name} ID you gave is not valid.", ephemeral=True)
         return
@@ -224,7 +224,7 @@ async def balls_info(ctx: commands.Context[BallsDexBot], countryball_id: str):
     )
     first_owner = first_trade_object.player if first_trade_object else ball.player
     spawned_time = format_dt(ball.spawned_time, style="R") if ball.spawned_time else "N/A"
-    catch_time = (
+    mining_time = (
         (ball.catch_date - ball.spawned_time).total_seconds() if ball.catch_date and ball.spawned_time else "N/A"
     )
     admin_url = f"[View online](<{reverse('admin:bd_models_ballinstance_change', args=(ball.pk,))}>)"
@@ -232,16 +232,16 @@ async def balls_info(ctx: commands.Context[BallsDexBot], countryball_id: str):
         f"**{settings.collectible_name.title()} ID:** {ball.pk}\n"
         f"**Player:** {ball.player}\n"
         f"**First owner:** {first_owner}\n"
-        f"**Name:** {ball.countryball}\n"
+        f"**Name:** {ball.block}\n"
         f"**Attack:** {ball.attack}\n"
         f"**Attack bonus:** {ball.attack_bonus}\n"
         f"**Health bonus:** {ball.health_bonus}\n"
         f"**Health:** {ball.health}\n"
         f"**Special:** {ball.special.name if ball.special else None}\n"
-        f"**Caught at:** {format_dt(ball.catch_date, style='R')}\n"
+        f"**Mined at:** {format_dt(ball.catch_date, style='R')}\n"
         f"**Spawned at:** {spawned_time}\n"
-        f"**Catch time:** {catch_time} seconds\n"
-        f"**Caught in:** {ball.server_id if ball.server_id else 'N/A'}\n"
+        f"**Mining time:** {mining_time} seconds\n"
+        f"**Mined in:** {ball.server_id if ball.server_id else 'N/A'}\n"
         f"**Traded:** {ball.trade_player}\n{admin_url}",
         ephemeral=True,
     )
@@ -250,19 +250,19 @@ async def balls_info(ctx: commands.Context[BallsDexBot], countryball_id: str):
 
 @balls.command(name="delete")
 @checks.has_permissions("bd_models.delete_ballinstance")
-async def balls_delete(ctx: commands.Context[BallsDexBot], countryball_id: str, soft_delete: bool = True):
+async def balls_delete(ctx: commands.Context[BloxdDexBot], block_id: str, soft_delete: bool = True):
     """
-    Delete a countryball.
+    Delete a block.
 
     Parameters
     ----------
-    countryball_id: str
-        The ID of the countryball you want to delete.
+    block_id: str
+        The ID of the block you want to delete.
     soft_delete: bool
-        Whether the countryball should be kept in database or fully wiped.
+        Whether the block should be kept in database or fully wiped.
     """
     try:
-        ballIdConverted = int(countryball_id, 16)
+        ballIdConverted = int(block_id, 16)
     except ValueError:
         await ctx.send(f"The {settings.collectible_name} ID you gave is not valid.", ephemeral=True)
         return
@@ -280,7 +280,7 @@ async def balls_delete(ctx: commands.Context[BallsDexBot], countryball_id: str, 
     )
     await ctx.send(
         f"You are about to {method} delete {ball.description(include_emoji=True, bot=ctx.bot)} "
-        f"(ID: `{countryball_id}`) owned by `{owner}`. Are you sure?",
+        f"(ID: `{block_id}`) owned by `{owner}`. Are you sure?",
         view=view,
         ephemeral=True,
     )
@@ -291,29 +291,29 @@ async def balls_delete(ctx: commands.Context[BallsDexBot], countryball_id: str, 
     if soft_delete:
         ball.deleted = True
         await ball.asave()
-        await ctx.send(f"{settings.collectible_name.title()} {countryball_id} soft deleted.", ephemeral=True)
+        await ctx.send(f"{settings.collectible_name.title()} {block_id} soft deleted.", ephemeral=True)
         log.info(f"{ctx.author} soft deleted {ball}({ball.pk}).", extra={"webhook": True})
     else:
         await ball.adelete()
-        await ctx.send(f"{settings.collectible_name.title()} {countryball_id} hard deleted.", ephemeral=True)
+        await ctx.send(f"{settings.collectible_name.title()} {block_id} hard deleted.", ephemeral=True)
         log.info(f"{ctx.author} hard deleted {ball}({ball.pk}).", extra={"webhook": True})
 
 
 @balls.command(name="transfer")
 @checks.has_permissions("bd_models.change_ballinstance")
-async def balls_transfer(ctx: commands.Context[BallsDexBot], countryball_id: str, user: discord.User):
+async def balls_transfer(ctx: commands.Context[BloxdDexBot], block_id: str, user: discord.User):
     """
-    Transfer a countryball to another user.
+    Transfer a block to another user.
 
     Parameters
     ----------
-    countryball_id: str
-        The ID of the countryball you want to transfer.
+    block_id: str
+        The ID of the block you want to transfer.
     user: discord.User
-        The user you want to transfer the countryball to.
+        The user you want to transfer the block to.
     """
     try:
-        ballIdConverted = int(countryball_id, 16)
+        ballIdConverted = int(block_id, 16)
     except ValueError:
         await ctx.send(f"The {settings.collectible_name} ID you gave is not valid.", ephemeral=True)
         return
@@ -329,7 +329,7 @@ async def balls_transfer(ctx: commands.Context[BallsDexBot], countryball_id: str
     view = ConfirmChoiceView(ctx, accept_message="Confirmed, transferring...", cancel_message="Request cancelled.")
     await ctx.send(
         f"You are about to transfer {ball.description(include_emoji=True, bot=ctx.bot)} "
-        f"(ID: `{countryball_id}`) from `{original_owner}` to `{user}`. Are you sure?",
+        f"(ID: `{block_id}`) from `{original_owner}` to `{user}`. Are you sure?",
         view=view,
         ephemeral=True,
     )
@@ -350,7 +350,7 @@ async def balls_transfer(ctx: commands.Context[BallsDexBot], countryball_id: str
 @balls.command(name="transferinv")
 @checks.has_permissions("bd_models.change_ballinstance")
 async def balls_transferinv(
-    ctx: commands.Context[BallsDexBot], source: discord.User, dest: discord.User, currency: bool = False
+    ctx: commands.Context[BloxdDexBot], source: discord.User, dest: discord.User, currency: bool = False
 ):
     """
     Transfer the full inventory of a user to another.
@@ -434,19 +434,19 @@ async def balls_transferinv(
 @balls.command(name="reset")
 @checks.has_permissions("bd_models.delete_ballinstance", "bd_models.change_ballinstance")
 async def balls_reset(
-    ctx: commands.Context[BallsDexBot], user: discord.User, percentage: int | None = None, soft_delete: bool = True
+    ctx: commands.Context[BloxdDexBot], user: discord.User, percentage: int | None = None, soft_delete: bool = True
 ):
     """
-    Reset a player's countryballs.
+    Reset a player's blocks.
 
     Parameters
     ----------
     user: discord.User
-        The user you want to reset the countryballs of.
+        The user you want to reset the blocks of.
     percentage: int | None
-        The percentage of countryballs to delete, if not all. Used for sanctions.
+        The percentage of blocks to delete, if not all. Used for sanctions.
     soft_delete: bool
-        If true, the countryballs will be marked as deleted instead of being removed from the
+        If true, the blocks will be marked as deleted instead of being removed from the
         database.
     """
     player = await Player.objects.aget_or_none(discord_id=user.id)
@@ -496,13 +496,13 @@ async def balls_reset(
 
 @balls.command(name="count")
 @checks.has_permissions("bd_models.view_ballinstance")
-async def balls_count(ctx: commands.Context[BallsDexBot], *, flags: BallsCountFlags):
+async def balls_count(ctx: commands.Context[BloxdDexBot], *, flags: BallsCountFlags):
     """
-    Count the number of countryballs that a player has or how many exist in total.
+    Count the number of blocks that a player has or how many exist in total.
     """
     filters = {}
-    if flags.countryball:
-        filters["ball"] = flags.countryball
+    if flags.block:
+        filters["ball"] = flags.block
     if flags.special:
         filters["special"] = flags.special
     if flags.user:
@@ -511,7 +511,7 @@ async def balls_count(ctx: commands.Context[BallsDexBot], *, flags: BallsCountFl
     qs = BallInstance.all_objects if flags.deleted else BallInstance.objects
     balls = await qs.filter(**filters).acount()
     verb = "is" if balls == 1 else "are"
-    country = f"{flags.countryball.country} " if flags.countryball else ""
+    country = f"{flags.block.country} " if flags.block else ""
     plural = "s" if balls > 1 or balls == 0 else ""
     special_str = f"{flags.special.name} " if flags.special else ""
     if flags.user:
@@ -527,21 +527,21 @@ async def balls_count(ctx: commands.Context[BallsDexBot], *, flags: BallsCountFl
 @balls.command(name="create")
 @checks.has_permissions("bd_models.add_ball")
 async def balls_create(
-    ctx: commands.Context[BallsDexBot],
+    ctx: commands.Context[BloxdDexBot],
     wild_card: discord.Attachment,
     collection_card: discord.Attachment,
     *,
     flags: CreateFlags,
 ):
     """
-    Create a countryball.
+    Create a block.
 
     Parameters
     ----------
     wild_card: discord.Attachment
-        Image used to spawn the countryball
+        Image used to spawn the block
     collection_card: discord.Attachment
-        Image used when displaying countryballs
+        Image used when displaying blocks
     """
     if not flags.emoji_id.isnumeric():
         await ctx.send("The emoji ID isn't a valid number.", ephemeral=True)

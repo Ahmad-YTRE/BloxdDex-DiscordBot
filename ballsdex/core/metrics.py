@@ -9,12 +9,12 @@ from aiohttp import web
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.core.metrics")
 
 caught_balls = Counter(
-    "caught_cb", "Caught countryballs", ["country", "special", "guild_size", "spawn_algo", "shard_id"]
+    "caught_cb", "Caught blocks", ["country", "special", "guild_size", "spawn_algo", "shard_id"]
 )
 
 
@@ -23,7 +23,7 @@ class PrometheusServer:
     Host an HTTP server for metrics collection by Prometheus.
     """
 
-    def __init__(self, bot: "BallsDexBot", host: str = "localhost", port: int = 15260):
+    def __init__(self, bot: "BloxdDexBot", host: str = "localhost", port: int = 15260):
         self.bot = bot
         self.host = host
         self.port = port

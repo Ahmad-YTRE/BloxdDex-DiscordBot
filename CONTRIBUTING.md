@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to this repo! This is a short guide to set you up for running Ballsdex in
+Thanks for contributing to this repo! This is a short guide to set you up for running BloxdDex in
 a development environment, with some tips on the code structure.
 
 ## Setting up the environment
@@ -14,7 +14,7 @@ Using Docker:
 
 Without docker, check how to install and setup PostgreSQL on your OS.
 Export the appropriate environment variables as described in the
-[no-docker installation guide](docs/selfhosting/installation/installing-ballsdex-no-docker.md).
+[no-docker installation guide](docs/selfhosting/installation/installing-bloxdex-no-docker.md).
 
 ### Installing the dependencies
 
@@ -30,7 +30,7 @@ Export the appropriate environment variables as described in the
 Before running any command, make sure the following environment variables are configured in your shell:
 
 ```bash
-export BALLSDEXBOT_DB_URL="postgres://ballsdex:defaultballsdexpassword@localhost:5432/ballsdex"
+export BALLSDEXBOT_DB_URL="postgres://bloxdex:defaultbloxdexpassword@localhost:5432/bloxdex"
 ```
 
 If needed, feel free to change the host, port, or user/password of the database.
@@ -38,10 +38,10 @@ If needed, feel free to change the host, port, or user/password of the database.
 ### Starting the bot
 
 ```bash
-uv run python -m ballsdex --dev --debug
+uv run python -m bloxdex --dev --debug
 ```
 
-You can do `python3 -m ballsdex -h` to see the available options.
+You can do `python3 -m bloxdex -h` to see the available options.
 
 ### Starting the admin panel
 
@@ -92,7 +92,7 @@ following contents:
 ```yaml
 services:
   bot:
-    command: python3 -m ballsdex --dev --debug
+    command: python3 -m bloxdex --dev --debug
     environment:
       - "DJANGO_SETTINGS_MODULE=admin_panel.settings.dev"
     build:

@@ -30,8 +30,8 @@ class RegimeAdmin(admin.ModelAdmin):
         regime_ids = [x.pk for x in objs]
         model_count = {
             "regimes": len(regime_ids),
-            "balls": Ball.objects.filter(regime_id__in=regime_ids).count(),
-            "ball instances": BallInstance.objects.filter(ball__regime_id__in=regime_ids).count(),
+            "blocks": Ball.objects.filter(regime_id__in=regime_ids).count(),
+            "block instances": BallInstance.objects.filter(ball__regime_id__in=regime_ids).count(),
             "trade objects": TradeObject.objects.filter(ballinstance__ball__regime_id__in=regime_ids).count(),
         }
 
@@ -95,7 +95,7 @@ class BallAdmin(admin.ModelAdmin):
         ),
         (
             "Ability",
-            {"description": "The ability of the countryball", "fields": ["capacity_name", "capacity_description"]},
+            {"description": "The ability of the block", "fields": ["capacity_name", "capacity_description"]},
         ),
         (
             "Advanced",
@@ -113,7 +113,7 @@ class BallAdmin(admin.ModelAdmin):
     ordering = ["-created_at"]
 
     search_fields = ["country", "capacity_name", "capacity_description", "catch_names", "translations", "credits", "pk"]
-    search_help_text = "Search for countryball name, ID, ability name/content, credits, catch names or translations"
+    search_help_text = "Search for block name, ID, ability name/content, credits, catch names or translations"
 
     @admin.display(description="Emoji")
     def emoji(self, obj: Ball):
@@ -135,8 +135,8 @@ class BallAdmin(admin.ModelAdmin):
         if len(instances) < 500:
             return super().get_deleted_objects(objs, request)  # type: ignore
         model_count = {
-            "balls": len(objs),
-            "ball instances": len(instances),
+            "blocks": len(objs),
+            "block instances": len(instances),
             "trade objects": TradeObject.objects.filter(ballinstance_id__in=instances).count(),
         }
         return ["Too long to display"], model_count, set(), []

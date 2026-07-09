@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="guildconfig",
             name="enabled",
-            field=models.BooleanField(default=True, help_text="Whether the bot will spawn countryballs in this guild"),
+            field=models.BooleanField(default=True, help_text="Whether the bot will spawn blocks in this guild"),
         ),
         migrations.AlterField(
             model_name="guildconfig",

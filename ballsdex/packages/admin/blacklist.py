@@ -7,7 +7,7 @@ from discord.utils import format_dt
 from django.db import IntegrityError
 from django.urls import reverse
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.utils import checks
 from ballsdex.core.utils.menus import Menu, ModelSource
 from bd_models.models import BlacklistedGuild, BlacklistedID, BlacklistHistory, GuildConfig, Player
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 @commands.hybrid_group()
 @checks.has_permissions("bd_models.view_blacklistedid")
-async def blacklist(ctx: commands.Context[BallsDexBot]):
+async def blacklist(ctx: commands.Context[BloxdDexBot]):
     """
     Bot blacklist management
     """
@@ -32,7 +32,7 @@ async def blacklist(ctx: commands.Context[BallsDexBot]):
 
 @blacklist.command(name="add")
 @checks.has_permissions("bd_models.add_blacklistedid")
-async def blacklist_add(ctx: commands.Context[BallsDexBot], user: discord.User, *, reason: str | None = None):
+async def blacklist_add(ctx: commands.Context[BloxdDexBot], user: discord.User, *, reason: str | None = None):
     """
     Add a user to the blacklist. No reload is needed.
 
@@ -64,7 +64,7 @@ async def blacklist_add(ctx: commands.Context[BallsDexBot], user: discord.User, 
 
 @blacklist.command(name="remove")
 @checks.has_permissions("bd_models.delete_blacklistedid")
-async def blacklist_remove(ctx: commands.Context[BallsDexBot], user: discord.User, *, reason: str | None = None):
+async def blacklist_remove(ctx: commands.Context[BloxdDexBot], user: discord.User, *, reason: str | None = None):
     """
     Remove a user from the blacklist. No reload is needed.
 
@@ -93,7 +93,7 @@ async def blacklist_remove(ctx: commands.Context[BallsDexBot], user: discord.Use
 
 @blacklist.command(name="info")
 @checks.has_permissions("bd_models.view_blacklistedid")
-async def blacklist_info(ctx: commands.Context[BallsDexBot], user: discord.User):
+async def blacklist_info(ctx: commands.Context[BloxdDexBot], user: discord.User):
     """
     Check if a user is blacklisted and show the corresponding reason.
 
@@ -159,7 +159,7 @@ async def blacklist_info(ctx: commands.Context[BallsDexBot], user: discord.User)
 
 @blacklist.command(name="history")
 @checks.has_permissions("bd_models.view_blacklisthistory")
-async def blacklist_history(ctx: commands.Context[BallsDexBot], user_id: str):
+async def blacklist_history(ctx: commands.Context[BloxdDexBot], user_id: str):
     """
     Show the history of a blacklisted user or guild.
 
@@ -187,7 +187,7 @@ async def blacklist_history(ctx: commands.Context[BallsDexBot], user_id: str):
         await ctx.send("User was not found from Discord.", ephemeral=True)
         return
 
-    async def select_callback(interaction: discord.Interaction[BallsDexBot]):
+    async def select_callback(interaction: discord.Interaction[BloxdDexBot]):
         await interaction.response.defer(thinking=True, ephemeral=True)
         data = cast("discord.types.interactions.SelectMessageComponentInteractionData", interaction.data)
         entry_pk = int(data["values"][0])
@@ -218,7 +218,7 @@ async def blacklist_history(ctx: commands.Context[BallsDexBot], user_id: str):
 
 @commands.hybrid_group()
 @checks.has_permissions("bd_models.view_blacklistedguild")
-async def blacklistguild(ctx: commands.Context[BallsDexBot]):
+async def blacklistguild(ctx: commands.Context[BloxdDexBot]):
     """
     Guild blacklist management
     """
@@ -227,7 +227,7 @@ async def blacklistguild(ctx: commands.Context[BallsDexBot]):
 
 @blacklistguild.command(name="add")
 @checks.has_permissions("bd_models.add_blacklistedguild")
-async def blacklist_add_guild(ctx: commands.Context[BallsDexBot], guild_id: str, *, reason: str):
+async def blacklist_add_guild(ctx: commands.Context[BloxdDexBot], guild_id: str, *, reason: str):
     """
     Add a guild to the blacklist. No reload is needed.
 
@@ -268,7 +268,7 @@ async def blacklist_add_guild(ctx: commands.Context[BallsDexBot], guild_id: str,
 
 @blacklistguild.command(name="remove")
 @checks.has_permissions("bd_models.delete_blacklistedguild")
-async def blacklist_remove_guild(ctx: commands.Context[BallsDexBot], guild_id: str, *, reason: str | None = None):
+async def blacklist_remove_guild(ctx: commands.Context[BloxdDexBot], guild_id: str, *, reason: str | None = None):
     """
     Remove a guild from the blacklist. No reload is needed.
 
@@ -307,7 +307,7 @@ async def blacklist_remove_guild(ctx: commands.Context[BallsDexBot], guild_id: s
 
 @blacklistguild.command(name="info")
 @checks.has_permissions("bd_models.view_blacklistedguild")
-async def blacklist_info_guild(ctx: commands.Context[BallsDexBot], guild_id: str):
+async def blacklist_info_guild(ctx: commands.Context[BloxdDexBot], guild_id: str):
     """
     Check if a guild is blacklisted and show the corresponding reason.
 

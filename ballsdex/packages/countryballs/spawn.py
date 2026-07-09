@@ -15,7 +15,7 @@ from settings.models import settings
 if TYPE_CHECKING:
     from discord.ext.commands import Context
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.countryballs")
 
@@ -24,20 +24,20 @@ CachedMessage = namedtuple("CachedMessage", ["content", "author_id"])
 
 class BaseSpawnManager:
     """
-    A class instancied on cog load that will include the logic determining when a countryball
+    A class instancied on cog load that will include the logic determining when a block
     should be spawned. You can implement your own version and configure it in config.yml.
 
     Be careful with optimization and memory footprint, this will be called very often and should
     not slow down the bot or cause memory leaks.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
     @abstractmethod
     async def handle_message(self, message: discord.Message) -> bool | tuple[Literal[True], str]:
         """
-        Handle a message event and determine if a countryball should be spawned next.
+        Handle a message event and determine if a block should be spawned next.
 
         Parameters
         ----------
@@ -47,9 +47,9 @@ class BaseSpawnManager:
         Returns
         -------
         bool | tuple[Literal[True], str]
-            `True` if a countryball should be spawned, else `False`.
+            `True` if a block should be spawned, else `False`.
 
-            If a countryball should spawn, do not forget to cleanup induced context to avoid
+            If a block should spawn, do not forget to cleanup induced context to avoid
             infinite spawns.
 
             You can also return a tuple (True, msg) to indicate which spawn algorithm has been
@@ -59,14 +59,14 @@ class BaseSpawnManager:
         raise NotImplementedError
 
     @abstractmethod
-    async def admin_explain(self, ctx: "Context[BallsDexBot]", guild: discord.Guild):
+    async def admin_explain(self, ctx: "Context[BloxdDexBot]", guild: discord.Guild):
         """
         Invoked by "/admin cooldown", this function should provide insights of the cooldown
         system for admins.
 
         Parameters
         ----------
-        ctx: ~discord.ext.commands.Context[BallsDexBot]
+        ctx: ~discord.ext.commands.Context[BloxdDexBot]
             The context of the invoking hybrid command
         guild: discord.Guild
             The guild that is targeted for the insights
@@ -78,7 +78,7 @@ class BaseSpawnManager:
 class SpawnCooldown:
     """
     Represents the default spawn internal system per guild. Contains the counters that will
-    determine if a countryball should be spawned next or not.
+    determine if a block should be spawned next or not.
 
     Attributes
     ----------
@@ -140,7 +140,7 @@ class SpawnCooldown:
 
 
 class SpawnManager(BaseSpawnManager):
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         super().__init__(bot)
         self.cooldowns: dict[int, SpawnCooldown] = {}
 
@@ -180,11 +180,11 @@ class SpawnManager(BaseSpawnManager):
             # wait for at least 10 minutes before spawning
             return False
 
-        # spawn countryball
+        # spawn block
         cooldown.reset(message.created_at)
         return True
 
-    async def admin_explain(self, ctx: "Context[BallsDexBot]", guild: discord.Guild):
+    async def admin_explain(self, ctx: "Context[BloxdDexBot]", guild: discord.Guild):
         cooldown = self.cooldowns.get(guild.id)
         if not cooldown:
             await ctx.send(

@@ -10,12 +10,12 @@ from bd_models.enums import DonationPolicy
 from bd_models.models import BallInstance, Player, Trade, TradeObject
 from settings.models import settings
 
-from .countryballs_paginator import CountryballsViewer
+from .blocks_paginator import BlocksViewer
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class GiveSkipReason(enum.StrEnum):
@@ -23,20 +23,20 @@ class GiveSkipReason(enum.StrEnum):
     LOCKED = "locked for another trade"
 
 
-async def check_giveable(countryball: BallInstance) -> GiveSkipReason | None:
+async def check_giveable(block: BallInstance) -> GiveSkipReason | None:
     """
-    Check whether a countryball can currently be given away, independent of the recipient.
+    Check whether a block can currently be given away, independent of the recipient.
     """
-    if not countryball.is_tradeable:
+    if not block.is_tradeable:
         return GiveSkipReason.NOT_TRADEABLE
-    if await countryball.is_locked():
+    if await block.is_locked():
         return GiveSkipReason.LOCKED
     return None
 
 
-async def check_recipient(bot: "BallsDexBot", new_player: Player, old_player: Player) -> str | None:
+async def check_recipient(bot: "BloxdDexBot", new_player: Player, old_player: Player) -> str | None:
     """
-    Check whether old_player may donate to new_player at all, independent of which countryball(s)
+    Check whether old_player may donate to new_player at all, independent of which block(s)
     are involved. Returns a user-facing error message, or None if the donation is allowed.
     """
     if new_player == old_player:
@@ -57,11 +57,11 @@ VIEW_ALL_CUSTOM_ID = "bulk_give:view_all"
 
 
 def add_view_all_button(
-    view: View, bot: "BallsDexBot", ball_ids: list[int], *, sender_id: int, recipient_id: int
+    view: View, bot: "BloxdDexBot", ball_ids: list[int], *, sender_id: int, recipient_id: int
 ) -> None:
     """
     Attach a "View All" button to a view. Clicking it opens a paginated, ephemeral browser of the
-    given countryballs (same select-and-inspect menu used by `/balls list`), private to whoever
+    given blocks (same select-and-inspect menu used by `/balls list`), private to whoever
     clicked it. Both the sender and the recipient of the donation may click it; anyone else is
     rejected.
 
@@ -76,9 +76,9 @@ def add_view_all_button(
             await interaction.response.send_message("You are not allowed to interact with this menu.", ephemeral=True)
             return
         queryset = BallInstance.objects.filter(id__in=ball_ids).order_by("-id")
-        viewer = CountryballsViewer()
+        viewer = BlocksViewer()
         viewer.restrict_author(interaction.user.id)
-        menu = Menu.countryballs(bot, viewer, viewer.selected, queryset)
+        menu = Menu.blocks(bot, viewer, viewer.selected, queryset)
         await menu.init(position=2)
         viewer.header.content = (
             "Viewing what you received" if interaction.user.id == recipient_id else "Viewing what you gave"
@@ -91,11 +91,11 @@ def add_view_all_button(
 
 
 class DonationRequest(View):
-    def __init__(self, bot: "BallsDexBot", interaction: Interaction, countryball: BallInstance, new_player: Player):
+    def __init__(self, bot: "BloxdDexBot", interaction: Interaction, block: BallInstance, new_player: Player):
         super().__init__(timeout=120)
         self.bot = bot
         self.original_interaction = interaction
-        self.countryball = countryball
+        self.block = block
         self.new_player = new_player
 
     async def interaction_check(self, interaction: Interaction, /) -> bool:
@@ -113,27 +113,27 @@ class DonationRequest(View):
             await self.original_interaction.edit_original_response(view=self)
         except discord.NotFound:
             pass
-        await self.countryball.unlock()
+        await self.block.unlock()
 
     @button(style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}")
     async def accept(self, interaction: Interaction, button: Button):
         self.stop()
         for item in self.children:
             item.disabled = True  # type: ignore
-        self.countryball.favorite = False
-        self.countryball.trade_player = self.countryball.player
-        self.countryball.player = self.new_player
-        await self.countryball.asave()
-        trade = await Trade.objects.acreate(player1=self.countryball.trade_player, player2=self.new_player)
+        self.block.favorite = False
+        self.block.trade_player = self.block.player
+        self.block.player = self.new_player
+        await self.block.asave()
+        trade = await Trade.objects.acreate(player1=self.block.trade_player, player2=self.new_player)
         await TradeObject.objects.acreate(
-            trade=trade, ballinstance=self.countryball, player=self.countryball.trade_player
+            trade=trade, ballinstance=self.block, player=self.block.trade_player
         )
         await interaction.response.edit_message(
             content=interaction.message.content  # type: ignore
             + "\n\N{WHITE HEAVY CHECK MARK} The donation was accepted!",
             view=self,
         )
-        await self.countryball.unlock()
+        await self.block.unlock()
 
     @button(style=discord.ButtonStyle.danger, emoji="\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}")
     async def deny(self, interaction: Interaction, button: Button):
@@ -145,22 +145,22 @@ class DonationRequest(View):
             + "\n\N{CROSS MARK} The donation was denied.",
             view=self,
         )
-        await self.countryball.unlock()
+        await self.block.unlock()
 
 
 class BulkDonationRequest(View):
     def __init__(
         self,
-        bot: "BallsDexBot",
+        bot: "BloxdDexBot",
         interaction: Interaction,
-        countryballs: list[BallInstance],
+        blocks: list[BallInstance],
         new_player: Player,
         old_player: Player,
     ):
         super().__init__(timeout=120)
         self.bot = bot
         self.original_interaction = interaction
-        self.countryballs = countryballs
+        self.blocks = blocks
         self.new_player = new_player
         self.old_player = old_player
 
@@ -181,8 +181,8 @@ class BulkDonationRequest(View):
             await self.original_interaction.edit_original_response(view=self)
         except discord.NotFound:
             pass
-        for countryball in self.countryballs:
-            await countryball.unlock()
+        for block in self.blocks:
+            await block.unlock()
 
     @button(style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}")
     async def accept(self, interaction: Interaction, button: Button):
@@ -190,23 +190,23 @@ class BulkDonationRequest(View):
         for item in self.children:
             item.disabled = True  # type: ignore
         trade = await Trade.objects.acreate(player1=self.old_player, player2=self.new_player)
-        for countryball in self.countryballs:
-            countryball.favorite = False
-            countryball.trade_player = self.old_player
-            countryball.player = self.new_player
-            await countryball.asave()
-            await TradeObject.objects.acreate(trade=trade, ballinstance=countryball, player=self.old_player)
-            await countryball.unlock()
+        for block in self.blocks:
+            block.favorite = False
+            block.trade_player = self.old_player
+            block.player = self.new_player
+            await block.asave()
+            await TradeObject.objects.acreate(trade=trade, ballinstance=block, player=self.old_player)
+            await block.unlock()
         add_view_all_button(
             self,
             self.bot,
-            [countryball.pk for countryball in self.countryballs],
+            [block.pk for block in self.blocks],
             sender_id=self.old_player.discord_id,
             recipient_id=self.new_player.discord_id,
         )
         await interaction.response.edit_message(
             content=(interaction.message.content if interaction.message else "")
-            + f"\n\N{WHITE HEAVY CHECK MARK} The donation of {len(self.countryballs)} "
+            + f"\n\N{WHITE HEAVY CHECK MARK} The donation of {len(self.blocks)} "
             f"{settings.plural_collectible_name} was accepted!",
             view=self,
         )
@@ -221,5 +221,5 @@ class BulkDonationRequest(View):
             + "\n\N{CROSS MARK} The donation was denied.",
             view=self,
         )
-        for countryball in self.countryballs:
-            await countryball.unlock()
+        for block in self.blocks:
+            await block.unlock()

@@ -250,7 +250,7 @@ class TradeableManager[T: models.Model](BallInstanceManager[T]):
 class Special(models.Model):
     name = models.CharField(max_length=64)
     catch_phrase = models.CharField(
-        max_length=128, blank=True, null=True, help_text="Sentence sent in bonus when someone catches a special card"
+        max_length=128, blank=True, null=True, help_text="Sentence sent in bonus when someone mines a special item"
     )
     start_date = models.DateTimeField(
         blank=True, null=True, help_text="Start time of the event. If blank, starts immediately"
@@ -278,15 +278,15 @@ class Special(models.Model):
 
 class Ball(models.Model):
     country = models.CharField(unique=True, max_length=48, verbose_name="Name")
-    health = models.IntegerField(help_text="Ball health stat")
-    attack = models.IntegerField(help_text="Ball attack stat")
-    rarity = models.FloatField(help_text="Rarity of this ball")
-    emoji_id = models.BigIntegerField(help_text="Emoji ID for this ball")
-    wild_card = models.ImageField(max_length=200, help_text="Image used when a new ball spawns in the wild")
-    collection_card = models.ImageField(max_length=200, help_text="Image used when displaying balls")
+    health = models.IntegerField(help_text="Block health stat")
+    attack = models.IntegerField(help_text="Block attack stat")
+    rarity = models.FloatField(help_text="Rarity of this block")
+    emoji_id = models.BigIntegerField(help_text="Emoji ID for this block")
+    wild_card = models.ImageField(max_length=200, help_text="Image used when a new block spawns in the wild")
+    collection_card = models.ImageField(max_length=200, help_text="Image used when displaying blocks")
     credits = models.CharField(max_length=64, help_text="Author of the collection artwork")
-    capacity_name = models.CharField(max_length=64, help_text="Name of the countryball's capacity")
-    capacity_description = models.CharField(max_length=256, help_text="Description of the countryball's capacity")
+    capacity_name = models.CharField(max_length=64, help_text="Name of the block's capacity")
+    capacity_description = models.CharField(max_length=256, help_text="Description of the block's capacity")
     capacity_logic = models.JSONField(help_text="Effect of this capacity", blank=True, default=dict)
     enabled = models.BooleanField(help_text="Enables spawning and show in completion", default=True)
     short_name = models.CharField(
@@ -296,9 +296,9 @@ class Ball(models.Model):
         help_text="An alternative shorter name used only when generating the card, if the base name is too long.",
     )
     catch_names = models.TextField(
-        blank=True, null=True, help_text="Additional possible names for catching this ball, separated by semicolons"
+        blank=True, null=True, help_text="Additional possible names for mining this block, separated by semicolons"
     )
-    tradeable = models.BooleanField(help_text="Whether this ball can be traded with others", default=True)
+    tradeable = models.BooleanField(help_text="Whether this block can be traded with others", default=True)
     economy = models.ForeignKey(
         Economy, on_delete=models.SET_NULL, blank=True, null=True, help_text="Economical regime of this country"
     )
@@ -386,7 +386,7 @@ class BallInstance(models.Model):
     favorite = models.BooleanField(default=False)
     special = models.ForeignKey(Special, on_delete=models.SET_NULL, null=True, blank=True)
     special_id: int | None
-    server_id = models.BigIntegerField(blank=True, null=True, help_text="Discord server ID where this ball was caught")
+    server_id = models.BigIntegerField(blank=True, null=True, help_text="Discord server ID where this ball was mined")
     tradeable = models.BooleanField(default=True)
     extra_data = models.JSONField(blank=True, default=dict)
     locked = models.DateTimeField(
@@ -468,7 +468,7 @@ class BallInstance(models.Model):
         emoji = f'<img src="https://cdn.discordapp.com/emojis/{self.ball.emoji_id}.png?size=20" />'
         return mark_safe(f"{emoji} {text} ATK:{self.attack_bonus:+d}% HP:{self.health_bonus:+d}%")
 
-    @admin.display(description="Time to catch")
+    @admin.display(description="Time to mine")
     def catch_time(self):
         if self.spawned_time:
             return str(self.catch_date - self.spawned_time)
@@ -534,7 +534,7 @@ class BallInstance(models.Model):
 
         content = (
             f"ID: `#{self.pk:0X}`\n"
-            f"Caught on {format_dt(self.catch_date)}{catch_time_msg} ({format_dt(self.catch_date, style='R')}).\n"
+            f"Mined on {format_dt(self.catch_date)}{catch_time_msg} ({format_dt(self.catch_date, style='R')}).\n"
             f"{trade_content}\n"
             f"ATK: {self.attack} ({self.attack_bonus:+d}%)\n"
             f"HP: {self.health} ({self.health_bonus:+d}%)"

@@ -10,7 +10,7 @@ from settings.models import settings
 from .components import AcceptTOSView
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 activation_embed = discord.Embed(
     colour=0x00D936,
@@ -30,20 +30,20 @@ activation_embed = discord.Embed(
 @app_commands.guild_only()
 class Config(commands.GroupCog):
     """
-    View and manage your countryballs collection.
+    View and manage your blocks collection.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
     @app_commands.command()
     @app_commands.checks.has_permissions(manage_guild=True)
     @app_commands.checks.bot_has_permissions(read_messages=True, send_messages=True, embed_links=True)
     async def channel(
-        self, interaction: discord.Interaction["BallsDexBot"], channel: Optional[discord.TextChannel] = None
+        self, interaction: discord.Interaction["BloxdDexBot"], channel: Optional[discord.TextChannel] = None
     ):
         """
-        Set or change the channel where countryballs will spawn.
+        Set or change the channel where blocks will spawn.
 
         Parameters
         ----------
@@ -114,16 +114,16 @@ class Config(commands.GroupCog):
     @app_commands.command()
     @app_commands.checks.has_permissions(manage_guild=True)
     @app_commands.checks.bot_has_permissions(send_messages=True)
-    async def disable(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def disable(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
-        Disable or enable countryballs spawning.
+        Disable or enable blocks spawning.
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         config, created = await GuildConfig.objects.aget_or_create(guild_id=interaction.guild_id)
         if config.enabled:
             config.enabled = False  # type: ignore
             await config.asave()
-            self.bot.dispatch("ballsdex_settings_change", guild, enabled=False)
+            self.bot.dispatch("bloxdex_settings_change", guild, enabled=False)
             await interaction.response.send_message(
                 f"Spawning is now **disabled** in this server. Commands will still be "
                 f"available, but the spawn of new {settings.plural_collectible_name} "
@@ -132,7 +132,7 @@ class Config(commands.GroupCog):
         else:
             config.enabled = True  # type: ignore
             await config.asave()
-            self.bot.dispatch("ballsdex_settings_change", guild, enabled=True)
+            self.bot.dispatch("bloxdex_settings_change", guild, enabled=True)
             if config.spawn_channel and (channel := guild.get_channel(config.spawn_channel)):
                 if channel:
                     await interaction.response.send_message(
@@ -154,7 +154,7 @@ class Config(commands.GroupCog):
     @app_commands.command()
     @app_commands.checks.has_permissions(manage_guild=True)
     @app_commands.checks.bot_has_permissions(send_messages=True)
-    async def toggledrop(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def toggledrop(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Allow or disallow players from using the drop command in this server.
         """
@@ -172,7 +172,7 @@ class Config(commands.GroupCog):
 
     @app_commands.command()
     @app_commands.checks.has_permissions(manage_guild=True)
-    async def status(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def status(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Check the server configuration status.
         """

@@ -6,7 +6,7 @@ from discord import app_commands
 from .cog import Admin
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 log = logging.getLogger("ballsdex.packages.admin")
 
@@ -35,7 +35,7 @@ def strip_descriptions(cog: Admin):
             param._Parameter__parent.description = "."  # type: ignore
 
 
-async def setup(bot: "BallsDexBot"):
+async def setup(bot: "BloxdDexBot"):
     n = Admin(bot)
     if command_count(n) > 3900:
         strip_descriptions(n)

@@ -1,24 +1,24 @@
 import discord
 from discord.ext import commands
 
-from ballsdex.core.bot import BallsDexBot
+from ballsdex.core.bot import BloxdDexBot
 from ballsdex.core.utils import checks
 
 
 @commands.hybrid_group()
 @checks.has_permissions("admincmd.logs")
-async def logs(ctx: commands.Context[BallsDexBot]):
+async def logs(ctx: commands.Context[BloxdDexBot]):
     """
     Bot logs management
     """
     await ctx.send_help(ctx.command)
 
 
-@logs.command(name="catchlogs")
+@logs.command(name="mininglogs")
 @checks.has_permissions("admincmd.logs")
-async def logs_add(ctx: commands.Context[BallsDexBot], user: discord.User):
+async def logs_add(ctx: commands.Context[BloxdDexBot], user: discord.User):
     """
-    Add or remove a user from catch logs.
+    Add or remove a user from mining logs.
 
     Parameters
     ----------
@@ -27,15 +27,15 @@ async def logs_add(ctx: commands.Context[BallsDexBot], user: discord.User):
     """
     if user.id in ctx.bot.catch_log:
         ctx.bot.catch_log.remove(user.id)
-        await ctx.send(f"{user} removed from catch logs.", ephemeral=True)
+        await ctx.send(f"{user} removed from mining logs.", ephemeral=True)
     else:
         ctx.bot.catch_log.add(user.id)
-        await ctx.send(f"{user} added to catch logs.", ephemeral=True)
+        await ctx.send(f"{user} added to mining logs.", ephemeral=True)
 
 
 @logs.command(name="commandlogs")
 @checks.has_permissions("admincmd.logs")
-async def commandlogs_add(ctx: commands.Context[BallsDexBot], user: discord.User):
+async def commandlogs_add(ctx: commands.Context[BloxdDexBot], user: discord.User):
     """
     Add or remove a user from command logs.
 

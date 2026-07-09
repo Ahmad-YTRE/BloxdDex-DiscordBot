@@ -32,7 +32,7 @@ from .logs import logs as logs_group
 from .money import money as money_group
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
     from ballsdex.packages.countryballs.cog import CountryBallsSpawner
     from ballsdex.packages.trade.cog import Trade
 
@@ -52,7 +52,7 @@ class SyncView(LayoutView):
         style=discord.ButtonStyle.primary,
         emoji="\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}",
     )
-    async def sync(self, interaction: discord.Interaction["BallsDexBot"], button: Button):
+    async def sync(self, interaction: discord.Interaction["BloxdDexBot"], button: Button):
         assert interaction.guild
         self.stop()
         await interaction.response.defer()
@@ -72,7 +72,7 @@ class SyncView(LayoutView):
     @action_row.button(
         label="Remove", style=discord.ButtonStyle.danger, emoji="\N{HEAVY MULTIPLICATION X}\N{VARIATION SELECTOR-16}"
     )
-    async def remove(self, interaction: discord.Interaction["BallsDexBot"], button: Button):
+    async def remove(self, interaction: discord.Interaction["BloxdDexBot"], button: Button):
         assert interaction.guild
         self.stop()
         await interaction.response.defer()
@@ -93,7 +93,7 @@ class Admin(commands.Cog):
     Bot admin commands.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
         self.admin.add_command(info_group)
@@ -104,11 +104,11 @@ class Admin(commands.Cog):
         self.admin.add_command(logs_group)
         self.admin.add_command(money_group)
 
-    async def cog_check(self, ctx: commands.Context["BallsDexBot"]) -> bool:
+    async def cog_check(self, ctx: commands.Context["BloxdDexBot"]) -> bool:
         return await checks.is_staff().predicate(ctx)
 
     async def cog_app_command_error(
-        self, interaction: discord.Interaction["BallsDexBot"], error: app_commands.AppCommandError
+        self, interaction: discord.Interaction["BloxdDexBot"], error: app_commands.AppCommandError
     ):
         if isinstance(error, app_commands.CommandSignatureMismatch):
             assert self.bot.user
@@ -142,7 +142,7 @@ class Admin(commands.Cog):
     @admin.command(with_app_command=False)
     @commands.is_owner()
     @commands.guild_only()
-    async def syncslash(self, ctx: commands.Context["BallsDexBot"]):
+    async def syncslash(self, ctx: commands.Context["BloxdDexBot"]):
         """
         Synchronize all the admin commands in the current server, or remove them if already existing.
         """
@@ -176,7 +176,7 @@ class Admin(commands.Cog):
 
     @admin.command()
     @checks.is_superuser()
-    async def status(self, ctx: commands.Context["BallsDexBot"], *, flags: StatusFlags):
+    async def status(self, ctx: commands.Context["BloxdDexBot"], *, flags: StatusFlags):
         """
         Change the status of the bot. Provide at least status or text.
         """
@@ -198,7 +198,7 @@ class Admin(commands.Cog):
 
     @admin.command()
     @checks.is_superuser()
-    async def trade_lockdown(self, ctx: commands.Context["BallsDexBot"], *, reason: str):
+    async def trade_lockdown(self, ctx: commands.Context["BloxdDexBot"], *, reason: str):
         """
         Cancel all ongoing trades and lock down further trades from being started.
 
@@ -234,9 +234,9 @@ class Admin(commands.Cog):
 
     @admin.command()
     @checks.has_permissions("bd_models.view_ball")
-    async def rarity(self, ctx: commands.Context["BallsDexBot"], *, flags: RarityFlags):
+    async def rarity(self, ctx: commands.Context["BloxdDexBot"], *, flags: RarityFlags):
         """
-        Generate a list of countryballs ranked by rarity.
+        Generate a list of blocks ranked by rarity.
         """
         text = ""
         balls_queryset = Ball.objects.all().order_by("rarity")
@@ -266,7 +266,7 @@ class Admin(commands.Cog):
 
     @admin.command()
     @checks.is_superuser()
-    async def cooldown(self, ctx: commands.Context["BallsDexBot"], guild_id: str | None = None):
+    async def cooldown(self, ctx: commands.Context["BloxdDexBot"], guild_id: str | None = None):
         """
         Show the details of the spawn cooldown system for the given server
 
@@ -291,7 +291,7 @@ class Admin(commands.Cog):
         await spawn_manager.admin_explain(ctx, guild)
 
     @admin.command()
-    async def guilds(self, ctx: commands.Context["BallsDexBot"], user: discord.User):
+    async def guilds(self, ctx: commands.Context["BloxdDexBot"], user: discord.User):
         """
         Shows the guilds shared with the specified user. Provide either user or user_id.
 
@@ -372,7 +372,7 @@ class Admin(commands.Cog):
 
     @admin.command()
     @checks.is_superuser()
-    async def impersonate(self, ctx: commands.Context["BallsDexBot"], user: discord.Member | None = None):
+    async def impersonate(self, ctx: commands.Context["BloxdDexBot"], user: discord.Member | None = None):
         """
         Impersonate a user on your next slash commands.
 

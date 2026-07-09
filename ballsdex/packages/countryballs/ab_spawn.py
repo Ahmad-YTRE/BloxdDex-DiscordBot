@@ -6,9 +6,9 @@ if TYPE_CHECKING:
     import discord
     from discord.ext.commands import Context
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-# It is a good idea to call importlib.reload on your custom module to make "b.reload countryballs"
+# It is a good idea to call importlib.reload on your custom module to make "b.reload blocks"
 # also reload the spawn manager. Otherwise, you'll be forced to fully restart to apply changes
 #
 # import importlib
@@ -38,7 +38,7 @@ class ABSpawner(BaseSpawnManager):
     manager_class_a: type[BaseSpawnManager]  # = SpawnManager
     manager_class_b: type[BaseSpawnManager]  # = YourCustomManager
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.manager_a = self.manager_class_a(bot)
         self.manager_b = self.manager_class_b(bot)
 
@@ -71,7 +71,7 @@ class ABSpawner(BaseSpawnManager):
             msg = manager.__class__.__name__
         return result, msg
 
-    async def admin_explain(self, ctx: "Context[BallsDexBot]", guild: "discord.Guild"):
+    async def admin_explain(self, ctx: "Context[BloxdDexBot]", guild: "discord.Guild"):
         manager = self.get_manager(guild)
         await manager.admin_explain(ctx, guild)
         if manager == self.manager_a:

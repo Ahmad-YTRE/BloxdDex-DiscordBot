@@ -13,7 +13,7 @@ from settings.models import settings
 from settings.utils import format_currency
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 
 class Money(commands.GroupCog):
@@ -21,11 +21,11 @@ class Money(commands.GroupCog):
     Currency commands
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "BloxdDexBot"):
         self.bot = bot
 
     @app_commands.command()
-    async def balance(self, interaction: discord.Interaction["BallsDexBot"]):
+    async def balance(self, interaction: discord.Interaction["BloxdDexBot"]):
         """
         Check your balance.
         """
@@ -53,7 +53,7 @@ class Money(commands.GroupCog):
         return Trade.objects.create(player1=old_player, player2=new_player, player1_money=amount)
 
     @app_commands.command()
-    async def give(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User, amount: int):
+    async def give(self, interaction: discord.Interaction["BloxdDexBot"], user: discord.User, amount: int):
         """
         Give money to a player.
 

@@ -7,19 +7,19 @@ from discord.ui import ActionRow, Button, LayoutView, button
 
 from ballsdex.core.discord import Modal
 
-from .formatter import CountryballFormatter
+from .formatter import BlockFormatter
 from .source import ModelSource
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
     from bd_models.models import BallInstance
 
     from .formatter import Formatter
     from .source import Source
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class NumberedPageModal(Modal, title="Go to page"):
@@ -168,7 +168,7 @@ class Menu[P]:
 
     Parameters
     ----------
-    bot: BallsDexBot
+    bot: BloxdDexBot
         The bot instance. Unused by itself, but some formatters may find it useful to have it available.
     view: LayoutView
         The view you are attaching to. This is incompatible with V1 views.
@@ -179,7 +179,7 @@ class Menu[P]:
         the view.
     """  # noqa: E501
 
-    def __init__(self, bot: "BallsDexBot", view: LayoutView, source: Source[P], *formatters: Formatter[P, Any]):
+    def __init__(self, bot: "BloxdDexBot", view: LayoutView, source: Source[P], *formatters: Formatter[P, Any]):
         self.bot = bot
         self.view = view
         self.formatters = formatters
@@ -190,15 +190,15 @@ class Menu[P]:
         self.controls = Controls(self)
 
     @classmethod
-    def countryballs(
+    def blocks(
         cls: type[Menu[QuerySet[BallInstance]]],
-        bot: "BallsDexBot",
+        bot: "BloxdDexBot",
         view: LayoutView,
         select: discord.ui.Select,
         queryset: "QuerySet[BallInstance]",
     ):
         source = ModelSource(queryset)
-        formatter = CountryballFormatter(select)
+        formatter = BlockFormatter(select)
         return cls(bot, view, source, formatter)
 
     async def init(self, position: int | None = None, container: discord.ui.Container | None = None):

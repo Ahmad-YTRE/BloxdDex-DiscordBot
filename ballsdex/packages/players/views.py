@@ -41,9 +41,9 @@ from .utils import get_items_csv, get_trades_csv
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
-type Interaction = discord.Interaction["BallsDexBot"]
+type Interaction = discord.Interaction["BloxdDexBot"]
 
 
 class Row(NamedTuple):
@@ -53,7 +53,7 @@ class Row(NamedTuple):
 
 
 class ExportCategory(StrEnum):
-    BALLS = "balls"
+    BLOCKS = "blocks"
     TRADES = "trades"
     ALL = "all"
 
@@ -67,7 +67,7 @@ class ExportModal(Modal, title="Data export"):
                 discord.SelectOption(
                     label=settings.collectible_name.title(),
                     description=f"Export all of your {settings.plural_collectible_name}.",
-                    value=ExportCategory.BALLS,
+                    value=ExportCategory.BLOCKS,
                 ),
                 discord.SelectOption(
                     label="Trades", description="Export your trade history.", value=ExportCategory.TRADES
@@ -88,7 +88,7 @@ class ExportModal(Modal, title="Data export"):
         await interaction.response.defer()
         files: list[tuple[str, BytesIO]] = []
         category = cast(Select, self.category.component).values[0]
-        if category == ExportCategory.BALLS or category == ExportCategory.ALL:
+        if category == ExportCategory.BLOCKS or category == ExportCategory.ALL:
             data = await get_items_csv(player)
             filename = f"{interaction.user.id}_{settings.collectible_name}.csv"
             files.append((filename, data))

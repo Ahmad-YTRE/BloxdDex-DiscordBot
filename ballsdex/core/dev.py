@@ -41,7 +41,7 @@ from bd_models.models import (
 )
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from ballsdex.core.bot import BloxdDexBot
 
 """
 Notice:
@@ -96,7 +96,7 @@ def format_exception(text: str) -> str:
 
 
 async def send_interactive(
-    ctx: commands.Context["BallsDexBot"],
+    ctx: commands.Context["BloxdDexBot"],
     messages: Iterable[str],
     *,
     timeout: int = 15,
@@ -203,12 +203,12 @@ class FileRow(discord.ui.ActionRow):
         self.content = content
 
     @discord.ui.button(label="File")
-    async def file_button(self, interaction: discord.Interaction["BallsDexBot"], _):
+    async def file_button(self, interaction: discord.Interaction["BloxdDexBot"], _):
         await interaction.response.send_message(file=text_to_file(self.content))
 
 
 async def build_eval_response(
-    ctx: commands.Context["BallsDexBot"], content: str, *, time_taken: float, error: bool = False
+    ctx: commands.Context["BloxdDexBot"], content: str, *, time_taken: float, error: bool = False
 ) -> LayoutView | None:
     """
     Creates a view with a paginator menu and a button to send the specified content as a file.
